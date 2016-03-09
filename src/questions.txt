@@ -1,0 +1,8 @@
+How many customers were in China in 2015?
+How many customers are there in Japan?
+How many PyCharm downloads were made in 2014?
+How many times PyCharm was downloaded in 2015?
+What is the total revenue for ReSharper?
+What was the revenue in 2012? 
+When was DataGrip released?
+When is PyCon 2016?
