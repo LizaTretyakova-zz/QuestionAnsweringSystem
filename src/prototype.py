@@ -131,16 +131,17 @@ def where_function(words):
 def when_function(words):
         events_hendler(words)
 
-words = input().split()
-words[-1] = words[-1][0:-1]
-print(words)
+if __name__ == "__main__":
+	words = input().split()
+	words[-1] = words[-1][0:-1]
+	print(words)
 
-question_words = {
-        "Who": who_function,
-        "What": what_function,
-        "How": how_function,
-        "Where": where_function,
-        "When": when_function,        
-}
+	question_words = {
+        	"Who": who_function,
+        	"What": what_function,
+        	"How": how_function,
+        	"Where": where_function,
+        	"When": when_function,        
+	}
 
-question_words[words[0]](words)
+	question_words[words[0]](words)

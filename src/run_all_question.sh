@@ -2,5 +2,5 @@
 
 while read line 
 do
-	echo $line | python3 prototip.py 
+	echo $line | python3 prototype.py 
 done < questions.txt
