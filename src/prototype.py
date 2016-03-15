@@ -1,4 +1,6 @@
 from sys import *
+import re
+
 import itertools
 
 contries = set(["China"])
@@ -33,7 +35,7 @@ def ask_product_base(word, retrun_group = None):
         else:
                 return False        
         
-def events_hendler(words):
+def events_handler(words):
         ask_word = "date"
         participent = words[2]
         possible_datas = set()
@@ -51,7 +53,7 @@ def events_hendler(words):
                 ask_events_database(ask_word, participent, action, data)
                         
                                                                         
-def download_hendler(words):
+def download_handler(words):
         ask_word = "how many downloads"
         possible_products = set()
         possible_countries = set()
@@ -78,7 +80,7 @@ def download_hendler(words):
                 ask_download_database(ask_word, variant[0], variant[1], variant[2])                               
                         
         
-def money_hendler(words):
+def money_handler(words):
         possible_products = set()
         possible_dates = set()
         possible_countries = set()                               
@@ -123,20 +125,20 @@ def how_function(words):
                 print()
                 return
         if (len(set(words) & download_words) == 0):
-                money_hendler(words)
-        else: download_hendler(words)
+                money_handler(words)
+        else: download_handler(words)
         
 def where_function(words):
         print("Incorrect question, please try again.")
 def when_function(words):
-        events_hendler(words)
+        events_handler(words)
 
 if __name__ == "__main__":
 	words = input().split()
-	words[-1] = words[-1][0:-1]
+	words[-1] = re.match('(\w)*', words[-1]).string
 	print(words)
 
-	question_words = {
+	word_function_mapping = {
         	"Who": who_function,
         	"What": what_function,
         	"How": how_function,
@@ -144,4 +146,4 @@ if __name__ == "__main__":
         	"When": when_function,        
 	}
 
-	question_words[words[0]](words)
+	word_function_mapping[words[0]](words)
