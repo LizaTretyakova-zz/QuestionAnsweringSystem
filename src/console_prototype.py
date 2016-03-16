@@ -1,64 +1,40 @@
 #!/usr/bin/env python3
 
-from collections import namedtuple
-from enum import Enum
-import sys
-
-Question = namedtuple("Question", ["question", "question_type", "answer_type", "attributes"])
-
-class AnswerType(Enum):
-    NUMBER = 0
-    DATE = 1
-
-class QuestionType(Enum):
-    DOWNLOADS = 0
-    MONEY = 1
-    EVENTS = 2
-
-ATTRIBUTES = {
-    "country": ["Russia", "Japan", "Germany"],
-    "product": ["PyCharm", "AppCode", "RubyMine", "ReSharper", "IntellijIdea"]
-}
-
-TYPES = {
-    "interrogative": {
-        "How many": AnswerType.NUMBER,
-        "How much": AnswerType.NUMBER,
-        "What": AnswerType.NUMBER,
-        "When": AnswerType.DATE
-    },
-
-    "help_words": {
-        "download": QuestionType.DOWNLOADS,
-        "customer": QuestionType.MONEY,
-        "revenue": QuestionType.MONEY,
-        "release": QuestionType.EVENTS,
-    }
-}
-
-def get_type(type, question):
-    for word, res_type in TYPES[type].items():
-        if word in question:
-            return res_type
-
-def get_attribute(attr_list, question):
-    for word in attr_list:
-        if word in question:
-            return word
-
-def process_qiestion(question):
-    question_type = get_type("help_words", question)
-    answer_type = get_type("interrogative", question)
-    attributes = {}
-    for attr, attr_list in ATTRIBUTES.items():
-        attributes[attr] = get_attribute(attr_list, question)
-    return Question(question=question, question_type=question_type, answer_type=answer_type, attributes=attributes)
-
-def main():
-    processed_question = process_qiestion(sys.argv[1])
-    print(processed_question)
-    if processed_question.question_type == None or processed_question.answer_type == None:
-        print("Sorry, the question is not clear enough. Would you mind repeating it, please?")
+import psycopg2
+from attributes import get_attribute_country
+from attributes import get_attribute_product
+from model import Question
+from types_detect import QuestionType
+from types_detect import get_answer_type
+from types_detect import get_question_type
 
 
-main()
+def process_question(question):
+    question_type = get_question_type(question)
+    answer_type = get_answer_type(question)
+    country = get_attribute_country(question)
+    product = get_attribute_product(question)
+    return Question(question=question, question_type=question_type, answer_type=answer_type, attribute_country=country, attribute_product=product)
+
+def get_answer(question):
+    conn = psycopg2.connect(database="postgres", user="qa", password="ulizoturome", host="localhost")
+    cur = conn.cursor()
+    query = ""
+    if question.question_type == QuestionType.DOWNLOADS:
+        query = """select sum(amount) from downloads where country = '""" + question.attribute_country + """'"""
+    cur.execute(query)
+    return cur.fetchall()
+
+
+if __name__ == "__main__":
+    questions = [
+        "how many downloads was there in Russia?"
+    ]
+
+    for question in questions:
+        processed_question = process_question(question)
+        print(processed_question)
+        if processed_question.question_type is None or processed_question.answer_type == None:
+            print("Sorry, the question is not clear enough. Would you mind repeating it, please?")
+        else:
+            print(get_answer(processed_question))
