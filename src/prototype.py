@@ -1,13 +1,9 @@
 from sys import *
 import re
+
+import datetime
 from enum import Enum
-
-
-class Question_Subject(Enum):
-    download = 0
-    event = 1
-    money = 2
-
+import psycopg2
 
 class Answer_Type(Enum):
     person = 0
@@ -69,7 +65,7 @@ class Query_event(Query):
         self.find_action()
         for country in self.possible_countries:
             for date in self.possible_dates:
-                ask_events_database(self.answer_type, country, date, self.participant, self.action)
+                return ask_events_database(self.answer_type, country, date, self.participant, self.action)
 
 
 class Query_money(Query):
@@ -92,6 +88,7 @@ class Query_money(Query):
                 for product in self.possible_products:
                     return ask_money_database(self.answer_type, country, date, product)
 
+
 class Query_downloads(Query):
     def __init__(self, words):
         Query.__init__(self, words)
@@ -110,26 +107,88 @@ class Query_downloads(Query):
         for country in self.possible_countries:
             for date in self.possible_dates:
                 for product in self.possible_products:
-                    ask_download_database(self.answer_type, country, date, product)
+                    return ask_download_database(self.answer_type, country, date, product)
 
-contries = set(["China"])
+
+countries = set(["China", "Japan"])
 products = set(["PyCharm"])
 download_words = {"downloads", "download", "downloaded"}
 
-
 def ask_events_database(ask_word, country, date, participant, action):
     print("events, ", ask_word, participant, action, date)
-    print()
+    if ask_word is not Answer_Type.time:
+        print("Wrong question type")
+        return None
+    try:
+        conn = psycopg2.connect("dbname='postgres' user='anta' host='localhost' password='7578757'")
+    except:
+        print("I am unable to connect to the database")
+        return None
+    cur = conn.cursor()
 
+    ask_fraze = """SELECT event_start_date, event_finish_date FROM events
+WHERE ((place = coalesce(%s, place)) OR (place is NULL AND %s is NULL)) AND
+(named_entity1 = coalesce(%s, named_entity1) OR named_entity2 = coalesce(%s, named_entity2) \
+OR (named_entity1 is NULL AND %s is NULL) OR (named_entity2 is NULL AND %s is NULL)) \
+AND (action = coalesce(%s, action) OR (action is NULL AND %s is NULL));"""
+    print(ask_fraze)
+    cur.execute(ask_fraze, [country, country, \
+                            participant, participant, participant, participant, action, action])
+    rows = list(cur.fetchall())
+    return rows
 
 def ask_download_database(ask_word, country, date, product):
     print("downloads, ", ask_word, product, country, date)
-    print()
+    if ask_word is not Answer_Type.count:
+        print("Wrong question type")
+        return None
+    try:
+        conn = psycopg2.connect("dbname='postgres' user='anta' host='localhost' password='7578757'")
+    except:
+        print("I am unable to connect to the database")
+        return None
+    cur = conn.cursor()
+
+    if date is None:
+        int_date = None
+    else:
+        int_date = int(date)
+
+    ask_fraze = """SELECT count(*) FROM downloads
+WHERE ((country = coalesce(%s, country)) OR (country is NULL AND %s is NULL)) AND
+(EXTRACT(YEAR FROM download_date) = coalesce(%s, EXTRACT(YEAR FROM download_date)) OR (download_date is NULL AND %s is NULL)) \
+AND (product = coalesce(%s, product) OR (product is NULL AND %s is NULL));"""
+    print(ask_fraze)
+    cur.execute(ask_fraze, [country, country, int_date, int_date, product, product])
+    rows = list(cur.fetchall()[0])
+    return rows
 
 
 def ask_money_database(ask_word, country, date, product):
     print("money, ", ask_word, product, date, country)
-    print()
+    if ask_word is not Answer_Type.count:
+        print("Wrong question type")
+        return None
+    try:
+        conn = psycopg2.connect("dbname='postgres' user='anta' host='localhost' password='7578757'")
+    except:
+        print("I am unable to connect to the database")
+        return None
+    cur = conn.cursor()
+
+    ask_fraze = """SELECT count(*) FROM
+(purchases INNER JOIN orders ON order_id = orders.id) INNER JOIN customers ON customers.id = customer_id
+WHERE ((country = coalesce(%s, country)) OR (country is NULL AND %s is NULL)) AND
+(EXTRACT(YEAR FROM order_date) = coalesce(%s, EXTRACT(YEAR FROM order_date)) OR (order_date is NULL AND %s is NULL)) \
+AND (product = coalesce(%s, product) OR (product is NULL AND %s is NULL));"""
+    print(ask_fraze)
+    if date is None:
+        int_date = None
+    else:
+        int_date = int(date)
+    cur.execute(ask_fraze, [country, country, int_date, int_date, product, product])
+    rows = list(cur.fetchall()[0])
+    return rows
 
 
 def ask_nation_base(word, retrun_group=None):
@@ -143,7 +202,7 @@ def ask_country_base(word, retrun_group=None):
     if retrun_group is not None:
         return "a"
     else:
-        if word in contries:
+        if word in countries:
             return True
         else:
             return False
@@ -201,10 +260,11 @@ def detect_answer_type(words):
 
 
 if __name__ == "__main__":
-    words = input().split()
+    words = raw_input().split()
     words[-1] = re.match('(\w)*', words[-1]).group(0)
     print(words)
     question_subject = detect_question_subject(words)
     answer_type = detect_answer_type(words)
     question_subject.set_answer_type(answer_type)
     print(question_subject.get_answer())
+    print
