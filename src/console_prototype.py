@@ -11,8 +11,10 @@ def process_question(question):
 
 if __name__ == "__main__":
     questions = [
-        "how many downloads was there in Russia?",
-        "how many downloads was there in Nigeria?"
+        "how many downloads were there in Russia?",
+        "how many downloads were there in 2015?",
+        "how many downloads were in 2016?",
+        "how many downloads were there in Nigeria in 2014?"
     ]
 
     for question in questions:
