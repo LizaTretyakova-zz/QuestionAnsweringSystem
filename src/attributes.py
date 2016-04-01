@@ -2,9 +2,8 @@
 
 
 from enum import Enum
-from model import Question
+from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute
 import re
-#TODO: PARSER -- gets all the attributes it can
 
 
 ATTRIBUTES_LIST = [
@@ -38,17 +37,6 @@ SINONYMS = {
 }
 
 
-class AnswerType(Enum):
-    NUMBER = 0
-    DATE = 1
-
-
-class QuestionType(Enum):
-    DOWNLOADS = 0
-    MONEY = 1
-    EVENTS = 2
-
-
 TYPES = {
     "interrogative": {
         "how many": AnswerType.NUMBER,
@@ -76,9 +64,6 @@ def parse(question): #returns a list of question's attributes
     result["product"] = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question), attributes=result)
 
-#def get_attribute_year(question):
-#TODO to be implemented
-
 
 def get_attribute_action(question):
     return get_attribute_by_list(ATTRIBUTES["action"], question)
@@ -89,7 +74,7 @@ def get_attribute_named_entity(question):
 
 
 def get_attribute_country(question):
-    return get_attribute_by_list(ATTRIBUTES["country"], question)
+    return LocationAttribute(country=get_attribute_by_list(ATTRIBUTES["country"], question))
 
 
 def get_attribute_product(question):
@@ -111,7 +96,8 @@ def get_repr(word):
 def get_attribute_year(question):
     search_result = re.search('in (\d+)', question)
     if search_result is not None:
-        return search_result.group(1)
+        time = search_result.group(1)
+        return TimeAttribute(start=time, end=time)
 
 
 def get_question_type(question):

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from attributes import AnswerType, QuestionType, TYPES
-from database_wrappers import get_from_downloads
+from model import AnswerType, QuestionType
+from attributes import TYPES
+from database_wrappers import DownloadsWrapper
 
 
 def dispatch(question):
@@ -14,7 +15,7 @@ def dispatch(question):
 
 def get_answer(question):
     if question.question_type == QuestionType.DOWNLOADS:
-        return get_from_downloads(question)
+        return DownloadsWrapper(question).get()
 
 
 #deprecated :)
