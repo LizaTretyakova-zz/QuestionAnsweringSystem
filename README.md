@@ -1,7 +1,7 @@
 # QuestionAnsweringSystem
 A branch for merging existing code.
 
-Contents:
+## Contents:
 
 model.py             -- basic classes and structures
 
