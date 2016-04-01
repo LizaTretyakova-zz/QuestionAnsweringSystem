@@ -5,7 +5,7 @@ A branch for merging existing code.
 
 model.py             -- basic classes and structures
 
-attributes.py        -- basic attributes functionality
+attributes.py        -- basic attributes functionality (location and time detection will be rewritten)
 
 dispatcher.py        -- TODO: implement
 
