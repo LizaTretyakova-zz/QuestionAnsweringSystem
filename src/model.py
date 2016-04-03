@@ -42,7 +42,8 @@ class TimeAttribute(BaseAttribute):
 class LocationAttribute(BaseAttribute):
     type = "location"
 
-    def __init__(self, country = None, city = None):
+    def __init__(self, loc_list = None, country = None, city = None):
         super().__init__()
+        self.location = loc_list
         self.country = country
         self.city = city

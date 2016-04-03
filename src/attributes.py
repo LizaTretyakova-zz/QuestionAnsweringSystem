@@ -3,7 +3,7 @@
 
 from enum import Enum
 from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute
-import re
+import nltk, re, pprint
 
 
 ATTRIBUTES_LIST = [
@@ -55,9 +55,9 @@ TYPES = {
 
 
 def parse(question): #returns a list of question's attributes
-    question = question.lower()
+    # question = question.lower()
     result = {}
-    result["country"] = get_attribute_country(question)
+    result["country"] = get_attribute_location(question)
     result["named_entity"] = get_attribute_named_entity(question)
     result["action"] = get_attribute_action(question)
     result["year"] = get_attribute_year(question)
@@ -73,8 +73,28 @@ def get_attribute_named_entity(question):
     return get_attribute_by_list(ATTRIBUTES["named_entity"], question)
 
 
-def get_attribute_country(question):
-    return LocationAttribute(country=get_attribute_by_list(ATTRIBUTES["country"], question))
+def _get_gpe(ne_question):
+    if isinstance(ne_question, nltk.tree.Tree):
+        if ne_question._label is not None and ne_question._label == 'GPE':
+            return [x for x in ne_question]
+        result = []
+        for child in ne_question:
+            result.extend(_get_gpe(child))
+        return result
+    return []
+
+
+# question is a string here
+def get_attribute_location(question):
+    tagged_tokens = nltk.pos_tag(nltk.word_tokenize(question))
+    ne_question = nltk.ne_chunk(tagged_tokens)
+    gpe_list = _get_gpe(ne_question)
+    place = None
+    if gpe_list is not None \
+        and len(gpe_list) > 0 \
+        and gpe_list[0] is not None:
+        place = gpe_list[0][0]
+    return LocationAttribute(loc_list=gpe_list, country=place)
 
 
 def get_attribute_product(question):
