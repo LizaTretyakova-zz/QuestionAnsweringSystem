@@ -8,16 +8,14 @@ class BaseWrapper:
 
 
 class DownloadsWrapper:
-
     def __init__(self, question):
-        self.question = question # COUNTRY, product, DOWNLOAD_DATE, amount
+        self.question = question  # COUNTRY, product, DOWNLOAD_DATE, amount
         self.country = None
         self.time = []
         self.arguments = None
         self.query = None
-        self.query_country = None # list of countries is temporary not supported
-        self.query_duration = None # list of separate years is temporary not supported, but [), (], [] are
-
+        self.query_country = None  # list of countries is temporary not supported
+        self.query_duration = None  # list of separate years is temporary not supported, but [), (], [] are
 
     def __extract_data__(self):
         if self.question is None:
@@ -48,18 +46,14 @@ class DownloadsWrapper:
             self.time = [True]
             self.query_duration = "%s"
 
-
     def __create_query__(self):
         self.query = "select sum(amount) from downloads where " + self.query_country + " and " + self.query_duration
-
 
     def __create_arguments__(self):
         if len(self.time) > 1:
             self.arguments = (self.country, self.time[0], self.time[1])
         else:
             self.arguments = (self.country, self.time[0])
-
-
 
     def get(self):
         self.__extract_data__()

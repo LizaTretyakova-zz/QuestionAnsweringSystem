@@ -32,8 +32,6 @@ class BaseAttribute:
 
 class TimeAttribute(BaseAttribute):
     type = "time"
-    start = None
-    end = None
 
     def __init__(self, start, end):
         super().__init__()
@@ -43,8 +41,6 @@ class TimeAttribute(BaseAttribute):
 
 class LocationAttribute(BaseAttribute):
     type = "location"
-    country = None
-    city = None
 
     def __init__(self, country = None, city = None):
         super().__init__()
