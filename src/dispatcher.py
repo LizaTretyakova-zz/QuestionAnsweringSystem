@@ -17,8 +17,10 @@ databases_ask_functions = {
 class Dispatcher(object):
     @staticmethod
     def find_answer(meta_data):
+        if meta_data is None:
+            return None
         meta_data.attributes.print()
-        if meta_data.question_type is QuestionType.MONEY:
+        if meta_data.question_type is QuestionType.CUSTOMERS:
             return WrapperMoneyDatabase.ask(meta_data)
         if meta_data.question_type is QuestionType.DOWNLOADS:
             wrapper = DownloadsWrapper(meta_data)

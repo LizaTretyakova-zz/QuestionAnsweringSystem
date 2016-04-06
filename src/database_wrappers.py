@@ -93,7 +93,7 @@ class WrapperMoneyDatabase(object):
         data = question.attributes.year
         place = question.attributes.country
         print("money, ", answer_type, product, place, data, question_type)
-        if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.MONEY:
+        if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None
         try:
             conn = psycopg2.connect("dbname='postgres' user='anta' host='localhost' password='7578757'")
