@@ -2,7 +2,7 @@
 
 
 from enum import Enum
-from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute
+from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute, Attributes
 import nltk, re, pprint
 
 
@@ -56,12 +56,12 @@ TYPES = {
 
 def parse(question): #returns a list of question's attributes
     # question = question.lower()
-    result = {}
-    result["country"] = get_attribute_location(question)
-    result["named_entity"] = get_attribute_named_entity(question)
-    result["action"] = get_attribute_action(question)
-    result["year"] = get_attribute_year(question)
-    result["product"] = get_attribute_product(question)
+    result = Attributes()
+    result.country = get_attribute_location(question)
+    result.named_entity = get_attribute_named_entity(question)
+    result.action = get_attribute_action(question)
+    result.year = get_attribute_year(question)
+    result.product = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question), attributes=result)
 
 
@@ -128,5 +128,5 @@ def get_question_type(question):
 
 def get_answer_type(question):
     for word, ans_type in TYPES["interrogative"].items():
-        if word in question:
+        if word in question.lower():
             return ans_type

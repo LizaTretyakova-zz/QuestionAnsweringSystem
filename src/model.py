@@ -22,9 +22,18 @@ class QuestionType(Enum):
     EVENTS = 2
 
 
-
 class BaseAttribute:
     type = "Base"
+    is_iterate = False
+
+    def __next__(self):
+        if not self.is_iterate:
+            self.is_iterate = True
+            return self
+        raise StopIteration
+
+    def __iter__(self):
+        return self
 
     def __init__(self):
         pass
@@ -47,3 +56,18 @@ class LocationAttribute(BaseAttribute):
         self.location = loc_list
         self.country = country
         self.city = city
+
+
+class Attributes:
+    def __init__(self):
+        self.country = None
+        self.product = None
+        self.year = None
+        self.named_entity = None
+        self.action = None
+
+    def items(self):
+        return (self.__dict__).items()
+
+    def print(self):
+        print(self.__dict__)

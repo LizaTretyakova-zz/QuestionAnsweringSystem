@@ -63,7 +63,7 @@ class DownloadsWrapper:
         self.__extract_data__()
         self.__create_query__()
         self.__create_arguments__()
-        conn = psycopg2.connect(database="postgres", user="qa", password="ulizoturome", host="localhost")
+        conn = psycopg2.connect(database="postgres", user="anta", password="7578757", host="localhost")
 
         # if self.question.subtype == QuestionSubtype.AMOUNT:
         cur = conn.cursor()
@@ -82,3 +82,47 @@ class DownloadsWrapper:
                     message += """specified time"""
             message += """. Try to change the country or time restrictions."""
         return {"result": res, "message": message}
+
+
+class WrapperMoneyDatabase(object):
+    @staticmethod
+    def ask(question):
+        answer_type = question.answer_type
+        question_type = question.question_type
+        product = question.attributes.product
+        data = question.attributes.year
+        place = question.attributes.country
+        print("money, ", answer_type, product, place, data, question_type)
+        if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.MONEY:
+            return None
+        try:
+            conn = psycopg2.connect("dbname='postgres' user='anta' host='localhost' password='7578757'")
+        except:
+            print("I am unable to connect to the database")
+            return None
+        cur = conn.cursor()
+
+        ask_fraze = """SELECT count(*) FROM
+    (purchases INNER JOIN orders ON order_id = orders.id) INNER JOIN customers ON customers.id = customer_id
+    WHERE ((country = coalesce(%s, country)) OR (country is NULL AND %s is NULL)) AND
+    (EXTRACT(YEAR FROM order_date) >= coalesce(%s, EXTRACT(YEAR FROM order_date)) OR (order_date is NULL AND %s is NULL)) \
+    AND \
+    (EXTRACT(YEAR FROM order_date) <= coalesce(%s, EXTRACT(YEAR FROM order_date)) OR (order_date is NULL AND %s is NULL)) \
+    AND (product = coalesce(%s, product) OR (product is NULL AND %s is NULL));"""
+
+        if data is None:
+            year_end = None
+            year_start = None
+        else:
+            if data.start is None:
+                year_start = None
+            else:
+                year_start = int(data.start)
+            if data.end is None:
+                year_end = None
+            else:
+                year_end = int(data.end)
+        cur.execute(ask_fraze, [place.country, place.country, year_start, year_start, \
+                                year_end, year_end, product, product])
+        rows = list(cur.fetchall()[0])
+        return rows
