@@ -18,8 +18,9 @@ class AnswerType(Enum):
 
 class QuestionType(Enum):
     DOWNLOADS = 0
-    MONEY = 1
+    CUSTOMERS = 1
     EVENTS = 2
+    SALES = 3
 
 
 
