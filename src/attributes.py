@@ -47,8 +47,8 @@ TYPES = {
 
     "help_words": {
         "download": QuestionType.DOWNLOADS,
-        "customer": QuestionType.MONEY,
-        "revenue": QuestionType.MONEY,
+        "customer": QuestionType.CUSTOMERS,
+        "revenue": QuestionType.SALES,
         "release": QuestionType.EVENTS,
     }
 }
