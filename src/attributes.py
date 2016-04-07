@@ -89,12 +89,10 @@ def get_attribute_location(question):
     tagged_tokens = nltk.pos_tag(nltk.word_tokenize(question))
     ne_question = nltk.ne_chunk(tagged_tokens)
     gpe_list = _get_gpe(ne_question)
-    place = None
-    if gpe_list is not None \
-        and len(gpe_list) > 0 \
-        and gpe_list[0] is not None:
-        place = gpe_list[0][0]
-    return LocationAttribute(loc_list=gpe_list, country=place)
+    places = []
+    for gpe in gpe_list:
+        places.append(gpe[0])
+    return LocationAttribute(loc_list=gpe_list, countries=places)
 
 
 def get_attribute_product(question):

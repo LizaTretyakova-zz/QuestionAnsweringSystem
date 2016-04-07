@@ -51,11 +51,12 @@ class TimeAttribute(BaseAttribute):
 
 class LocationAttribute(BaseAttribute):
     type = "location"
+    country = "true" # TODO: !!! DELETE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    def __init__(self, loc_list = None, country = None, city = None):
+    def __init__(self, loc_list = None, countries = None, city = None):
         super().__init__()
         self.location = loc_list
-        self.country = country
+        self.countries = countries
         self.city = city
 
 
