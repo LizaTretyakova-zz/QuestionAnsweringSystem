@@ -43,7 +43,7 @@ class BaseAttribute:
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start, end):
+    def __init__(self, start = None, end = None):
         super().__init__()
         self.start = start
         self.end = end
@@ -61,9 +61,9 @@ class LocationAttribute(BaseAttribute):
 
 class Attributes:
     def __init__(self):
-        self.country = None
+        self.location = None
         self.product = None
-        self.year = None
+        self.time = None
         self.named_entity = None
         self.action = None
 
