@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import spacy.en
+from spacy.parts_of_speech import VERB
 
 
 from enum import Enum
-from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute, Attributes
+from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
 import nltk, re, pprint
 
 
@@ -23,6 +25,14 @@ ATTRIBUTES = {
     "named_entity": ["Microsoft", "JetBrains"],
     "action": ["released", "bought"]
 }
+
+
+NEGATIVES = [
+    "except",
+    "not",
+    "outside",
+    "without"
+]
 
 
 SINONYMS = {
@@ -54,18 +64,55 @@ TYPES = {
 }
 
 
+nlp = spacy.en.English()
+
+
 def parse(question): #returns a list of question's attributes
-    # question = question.lower()
+    # question is a string
+    # doc is spacy-parsed question
+    doc = nlp(question)
+
     result = Attributes()
     result.country = get_attribute_location(question)
     result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action(question)
+    result.action = get_attribute_action(doc)
     result.year = get_attribute_year(question)
     result.product = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question), attributes=result)
 
 
-def get_attribute_action(question):
+def get_attribute_action(doc):
+    action = None
+    others = []
+    for token in doc:
+        if token.head is token:
+            action = token.lemma_
+        elif token.pos is VERB:
+            others.append(token.lemma_)
+    return ActionAttribute(action, others)
+
+
+def get_attribute_location(doc):
+    exceptions = []
+    candidates = []
+    # result = []
+    # TODO: to use feature-extraction to determine negative/positive
+    for ne in doc.ents:
+        if ne.label_ == 'GPE':
+            if ne.head.lower_ in NEGATIVES:
+                exceptions.append(ne.lemma_)
+            else:
+                candidates.append(ne.lemma_)
+        elif ne.label_ == 'LOC':
+            gpe_list = get_by_location(ne.lemma_)
+            if ne.head.lower_ in NEGATIVES:
+                exceptions.extend(gpe_list)
+            else:
+                candidates.extend(gpe_list)
+    return [x for x in candidates if x not in exceptions]
+
+
+def get_attribute_action_simple(question):
     return get_attribute_by_list(ATTRIBUTES["action"], question)
 
 
@@ -85,7 +132,7 @@ def _get_gpe(ne_question):
 
 
 # question is a string here
-def get_attribute_location(question):
+def get_attribute_location_simple(question):
     tagged_tokens = nltk.pos_tag(nltk.word_tokenize(question))
     ne_question = nltk.ne_chunk(tagged_tokens)
     gpe_list = _get_gpe(ne_question)

@@ -52,12 +52,22 @@ class TimeAttribute(BaseAttribute):
 class LocationAttribute(BaseAttribute):
     type = "location"
     country = "true" # TODO: !!! DELETE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # TODO: It's here only because of compatibility with Nadya's code!!!!
 
     def __init__(self, loc_list = None, countries = None, city = None):
         super().__init__()
         self.location = loc_list
         self.countries = countries
         self.city = city
+
+
+class ActionAttribute(BaseAttribute):
+    type = "action"
+
+    def __init__(self, action = None, other = None):
+        super().__init__(self)
+        self.main_action = action
+        self.other = other
 
 
 class Attributes:
