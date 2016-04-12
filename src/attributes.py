@@ -92,6 +92,11 @@ def get_attribute_action(doc):
     return ActionAttribute(action, others)
 
 
+def _get_by_location(location):
+    # TODO: call the DB containing countries
+    return []
+
+
 def get_attribute_location(doc):
     exceptions = []
     candidates = []
@@ -104,7 +109,7 @@ def get_attribute_location(doc):
             else:
                 candidates.append(ne.lemma_)
         elif ne.label_ == 'LOC':
-            gpe_list = get_by_location(ne.lemma_)
+            gpe_list = _get_by_location(ne.lemma_)
             if ne.head.lower_ in NEGATIVES:
                 exceptions.extend(gpe_list)
             else:
