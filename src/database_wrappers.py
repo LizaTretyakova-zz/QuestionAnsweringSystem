@@ -2,6 +2,9 @@ from model import QuestionType, AnswerType, BaseAttribute
 import psycopg2
 
 
+USER = "demo"
+PASSWORD = "demo"
+
 class BaseWrapper:
     def __init__(self):
         pass
@@ -55,7 +58,7 @@ class DownloadsWrapper:
         self.__extract_data__()
         self.__create_query__()
         self.__create_arguments__()
-        conn = psycopg2.connect(database="postgres", user="demo", password="demo", host="localhost")
+        conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
 
         cur = conn.cursor()
         cur.execute(self.query, self.arguments)
@@ -83,11 +86,11 @@ class WrapperMoneyDatabase(object):
         product = question.attributes.product
         data = question.attributes.time
         place = question.attributes.location
-        print("money, ", answer_type, product, place, data, question_type)
+#        print("money, ", answer_type, product, place, data, question_type)
         if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None
         try:
-            conn = psycopg2.connect("dbname='postgres' user='demo' host='localhost' password='demo'")
+            conn = psycopg2.connect(database='postgres', user=USER, host='localhost', password=PASSWORD)
         except:
             print("I am unable to connect to the database")
             return None

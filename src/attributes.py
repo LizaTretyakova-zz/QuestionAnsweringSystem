@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import spacy.en
 from spacy.parts_of_speech import VERB
+from datetime import date
 
 
 from enum import Enum
@@ -82,7 +83,7 @@ def parse(question): #returns a list of question's attributes
     result.location = get_attribute_location_simple(question)
     result.named_entity = get_attribute_named_entity(question)
     result.action = get_attribute_action(question)
-    result.time = get_attribute_time(question)
+    result.time = get_attribute_time_spacy(doc)
     result.product = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
                     attributes=result)
@@ -190,6 +191,31 @@ def get_repr(word):
     for repr in SINONYMS:
         if word in SINONYMS[repr]:
             return repr
+
+
+def get_attribute_time_spacy(doc):
+    times = []
+    for ent in doc.ents:
+        if ent.label_ == "DATE":
+            times.append(ent)
+    for time in times:
+        if "ago" in time.orth_:
+            cur_year = date.today().year
+            count_years = find_number(time.orth_)
+            return TimeAttribute(cur_year - count_years, cur_year - count_years)
+        proposition = time.root.head
+        if proposition.orth_ == "since":
+            return TimeAttribute(time.orth_)
+        return TimeAttribute(time.orth_, time.orth_)
+    return TimeAttribute()
+
+
+def find_number(text):
+    search_result = re.search('\d+', text)
+    if search_result is not None:
+        return int(search_result.group(0))
+    else:
+        return 0
 
 
 def get_attribute_time(question):

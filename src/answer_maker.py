@@ -2,6 +2,9 @@ from model import AnswerType, QuestionType
 from attributes import TYPES
 from database_wrappers import DownloadsWrapper
 
+past_verbs = ["was", "were"]
+present_verbs = ["is", "ara"]
+
 
 def xstr(smth, prefix = "", suffix = ""):
     if smth is None:
