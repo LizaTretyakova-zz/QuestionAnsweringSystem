@@ -38,6 +38,20 @@ SINONYMS = {
     "AppCode": ["appcode"],
     "RubyMine": ["rubymine"],
     "ReSharper": ["resharper"],
+    "PhpStorm": ["phpstorm"],
+    "WebStorm": ["webstorm"],
+    "CLion": ["clion"],
+    "DataGrip": ["datagrip"],
+    "ReSharperCpp": ["resharpercpp"],
+    "dotTrace": ["dottrace"],
+    "dotCover": ["dotcover"],
+    "dotMemory": ["dotmemory"],
+    "dotPeek": ["dotpeek"],
+    "TeamCity": ["teamcity"],
+    "YouTrack": ["youtrack"],
+    "Upsource": ["upsource"],
+    "Hub": ["hub"],
+    "MPS": ["mps"],
     "Russia": ["russia", "russian federation"],
     "Japan": ["japan", "land of the rising sun"],
     "Germany": ["germany", "federal republic of germany"],
@@ -59,17 +73,6 @@ TYPES = {
     }
 }
 
-
-"""def parse(question):  # returns a list of question's attributes
-    # question = question.lower()
-    result = Attributes()
-    result.location = get_attribute_location(question)
-    result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action(question)
-    result.time = get_attribute_year(question)
-    result.product = get_attribute_product(question)
-    return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
-                    attributes=result)"""""
 
 nlp = spacy.en.English()
 
@@ -175,7 +178,7 @@ def get_attribute_location_simple(question):
 
 
 def get_attribute_product(question):
-    return get_attribute_by_list(ATTRIBUTES["product"], question)
+    return get_attribute_by_list(ATTRIBUTES["product"], question.lower())
 
 
 def get_attribute_by_list(attr_list, question):
