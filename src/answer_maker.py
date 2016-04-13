@@ -2,9 +2,33 @@ from model import AnswerType, QuestionType
 from attributes import TYPES
 from database_wrappers import DownloadsWrapper
 
-def get_answer(question):
-    if question.question_type == QuestionType.DOWNLOADS:
-        return DownloadsWrapper(question).get()
+
+def xstr(smth, prefix = "", suffix = ""):
+    if smth is None:
+        return ""
+    else:
+        return prefix + str(smth) + suffix
+
+
+def country_str(countries):
+    result = ""
+    for country in countries:
+        if result is "":
+            result += " in " + country
+        else:
+            result += " and " + country
+    return result
+
+
+def get_answer(query, answer):
+    if query.attributes.location is not None:
+        country = query.attributes.location
+    if query.question_type is QuestionType.DOWNLOADS:
+        return ("There" + xstr(query.attributes.action, " ", " ") + str(answer) + " downloads" + country_str(query.attributes.location.countries) +
+                xstr(query.attributes.time.start, " in "))
+    if query.question_type is QuestionType.CUSTOMERS:
+        return ("There" + xstr(query.attributes.action, " ", " ") + str(answer) + " customers " + country_str(query.attributes.location.countries) + " " +
+                xstr(query.attributes.time.start, " in "))
 
 
 # deprecated :)

@@ -81,8 +81,8 @@ class WrapperMoneyDatabase(object):
         answer_type = question.answer_type
         question_type = question.question_type
         product = question.attributes.product
-        data = question.attributes.year
-        place = question.attributes.country
+        data = question.attributes.time
+        place = question.attributes.location
         print("money, ", answer_type, product, place, data, question_type)
         if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None
@@ -113,7 +113,9 @@ class WrapperMoneyDatabase(object):
                 year_end = None
             else:
                 year_end = int(data.end)
-        cur.execute(ask_phrase, [place.country, place.country, year_start, year_start, \
-                                year_end, year_end, product, product])
-        rows = list(cur.fetchall()[0])
-        return rows
+        rows = []
+        for country in place.countries:
+            cur.execute(ask_phrase, [country, country, year_start, year_start, \
+                                    year_end, year_end, product, product])
+            rows += list(cur.fetchall()[0])
+        return sum(rows)

@@ -21,11 +21,12 @@ class Dispatcher(object):
             return None
         meta_data.attributes.print()
         if meta_data.question_type is QuestionType.CUSTOMERS:
-            return WrapperMoneyDatabase.ask(meta_data)
+            return get_answer(meta_data, WrapperMoneyDatabase.ask(meta_data))
         if meta_data.question_type is QuestionType.DOWNLOADS:
             wrapper = DownloadsWrapper(meta_data)
             downloads_answer = wrapper.get()
             if downloads_answer['message'] is "Success":
-                return  downloads_answer["result"]
+                return get_answer(meta_data, downloads_answer["result"][0])
             else:
-                print(downloads_answer["message"])
+                return (get_answer(meta_data, 0) + "\n" +
+                downloads_answer["message"])

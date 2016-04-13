@@ -8,7 +8,8 @@ Question = namedtuple("Question", [
     "attributes"
 ])
 
-#attributes: country, product, year, named_entity, action
+
+# attributes: country, product, year, named_entity, action
 
 
 class AnswerType(Enum):
@@ -43,7 +44,7 @@ class BaseAttribute:
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start, end):
+    def __init__(self, start=None, end=None):
         super().__init__()
         self.start = start
         self.end = end
@@ -51,10 +52,8 @@ class TimeAttribute(BaseAttribute):
 
 class LocationAttribute(BaseAttribute):
     type = "location"
-    country = "true" # TODO: !!! DELETE THIS !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # TODO: It's here only because of compatibility with Nadya's code!!!!
 
-    def __init__(self, loc_list = None, countries = None, city = None):
+    def __init__(self, loc_list=None, countries=None, city=None):
         super().__init__()
         self.location = loc_list
         self.countries = countries
@@ -64,7 +63,7 @@ class LocationAttribute(BaseAttribute):
 class ActionAttribute(BaseAttribute):
     type = "action"
 
-    def __init__(self, action = None, other = None):
+    def __init__(self, action=None, other=None):
         super().__init__(self)
         self.main_action = action
         self.other = other
@@ -72,9 +71,9 @@ class ActionAttribute(BaseAttribute):
 
 class Attributes:
     def __init__(self):
-        self.country = None
+        self.location = None
         self.product = None
-        self.year = None
+        self.time = None
         self.named_entity = None
         self.action = None
 
