@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import spacy.en
+from spacy.parts_of_speech import VERB
 
 
 from enum import Enum
-from model import Question, QuestionType, AnswerType, LocationAttribute, TimeAttribute, Attributes
+from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
 import nltk, re, pprint
 
 ATTRIBUTES_LIST = [
@@ -22,6 +24,13 @@ ATTRIBUTES = {
     "action": ["released", "bought"],
     "extra action": ["were", "was", "are", "is"]
 }
+
+NEGATIVES = [
+    "except",
+    "not",
+    "outside",
+    "without"
+]
 
 SINONYMS = {
     "IntellIjidea": ["idea", "intellij idea", "intellijidea"],
@@ -51,7 +60,7 @@ TYPES = {
 }
 
 
-def parse(question):  # returns a list of question's attributes
+"""def parse(question):  # returns a list of question's attributes
     # question = question.lower()
     result = Attributes()
     result.location = get_attribute_location(question)
@@ -60,12 +69,28 @@ def parse(question):  # returns a list of question's attributes
     result.time = get_attribute_year(question)
     result.product = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
+                    attributes=result)"""""
+
+nlp = spacy.en.English()
+
+
+def parse(question): #returns a list of question's attributes
+    # question is a string
+    # doc is spacy-parsed question
+    doc = nlp(question)
+    result = Attributes()
+    result.location = get_attribute_location_simple(question)
+    result.named_entity = get_attribute_named_entity(question)
+    result.action = get_attribute_action(question)
+    result.time = get_attribute_time(question)
+    result.product = get_attribute_product(question)
+    return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
                     attributes=result)
 
 
 def get_attribute_action(question):
-    main_action = get_attribute_by_list_without_synonims(ATTRIBUTES["action"], question)
-    extra_action = get_attribute_by_list_without_synonims(ATTRIBUTES["extra action"], question)
+    main_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["action"], question)
+    extra_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["extra action"], question)
     if extra_action is None:
         return main_action
     elif main_action is None:
@@ -74,10 +99,50 @@ def get_attribute_action(question):
         return extra_action + " " + main_action
 
 
-def get_attribute_by_list_without_synonims(attr_list, question):
+def get_attribute_by_list_without_sinonyms(attr_list, question):
     for word in attr_list:
         if word in question:
             return word
+
+
+def get_attribute_action_spacy(doc):
+    action = None
+    others = []
+    for token in doc:
+        if token.head is token:
+            action = token.lemma_
+        elif token.pos is VERB:
+            others.append(token.lemma_)
+    return ActionAttribute(action, others)
+
+
+def get_attribute_location(doc):
+    exceptions = []
+    candidates = []
+    # result = []
+    # TODO: to use feature-extraction to determine negative/positive
+    for ne in doc.ents:
+        if ne.label_ == 'GPE':
+            if ne.head.lower_ in NEGATIVES:
+                exceptions.append(ne.lemma_)
+            else:
+                candidates.append(ne.lemma_)
+        elif ne.label_ == 'LOC':
+            gpe_list = _get_by_location(ne.lemma_)
+            if ne.head.lower_ in NEGATIVES:
+                exceptions.extend(gpe_list)
+            else:
+                candidates.extend(gpe_list)
+    return [x for x in candidates if x not in exceptions]
+
+
+def _get_by_location(location):
+    # TODO: call the DB containing countries
+    return []
+
+
+def get_attribute_action_simple(question):
+    return get_attribute_by_list(ATTRIBUTES["action"], question)
 
 
 def get_attribute_named_entity(question):
@@ -96,16 +161,14 @@ def _get_gpe(ne_question):
 
 
 # question is a string here
-def get_attribute_location(question):
+def get_attribute_location_simple(question):
     tagged_tokens = nltk.pos_tag(nltk.word_tokenize(question))
     ne_question = nltk.ne_chunk(tagged_tokens)
     gpe_list = _get_gpe(ne_question)
-    place = None
-    if gpe_list is not None \
-            and len(gpe_list) > 0 \
-            and gpe_list[0] is not None:
-        place = gpe_list[0][0]
-    return LocationAttribute(loc_list=gpe_list, country=place)
+    places = []
+    for gpe in gpe_list:
+        places.append(gpe[0])
+    return LocationAttribute(loc_list=gpe_list, countries=places)
 
 
 def get_attribute_product(question):
@@ -124,7 +187,7 @@ def get_repr(word):
             return repr
 
 
-def get_attribute_year(question):
+def get_attribute_time(question):
     search_result = re.search('in (\d+)', question)
     if search_result is not None:
         time = search_result.group(1)

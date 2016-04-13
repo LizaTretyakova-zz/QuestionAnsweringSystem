@@ -1,0 +1,132 @@
+ABSTRACT
+http://www.aclweb.org/anthology/W04-0507.pdf 
+
+The named entity tagger is used to identify tem-
+poral expressions, place names, and weather events.
+The tagger consults the domain-dependent ontology
+for recognizing weather events, and the domain-
+independent ontology for place names. The ontol-
+ogy for the weather events consists of event con-
+cepts, which are similar to Synset in W
+ORD
+N
+ET
+(Fellbaum, 1998).
+
+The temporal data normalizer converts temporal
+expressions such as
+today
+,
+this  weekend
+and
+now
+into absolute values that can be used in querying to
+the database.
+
+That is, there is a finite number of expected ques-
+tion topics. Each expected question topic is defined
+as a single
+query  frame
+.
+
+Each frame has a rule for SQL generation.
+
+As represented in Figure 2, the extracted event,
+temporal and spatial keywords are used for selecting
+an appropriate query frame. Currently, we are us-
+ing a hand-coded decision tree-like classifier for se-
+lecting an appropriate query frame for the extracted
+keywords. 
+Machine learned
+classifier is being developed
+
+
+/**
+For evaluation, we’ve collected 50 weather ques-
+tions from 10 graduate students.
+^^^
+may I treat this like "We've asked 10 our friends..."? :)
+*/
+
+--------------------------------------------------------------
+ABSTRACT
+http://start.csail.mit.edu/publications/Katz-etal-ACL01.pdf 
+
+Annotations 
+/**
+Hmm...
+*/
+ternary expressions
+transformational rules
+
+/**
+Who is that Minipar? O_o
+*/
+
+
+--------------------------------------------------------------
+ABSTRACT
+http://www.semantic-web-journal.net/system/files/swj1180.pdf
+
+KbQAS makes use of the JAPE grammars in the
+GATE framework [11] to specify semantic annotation-
+based regular expression patterns for question analy-
+sis, in which existing linguistic processing modules for
+Vietnamese including word segmentation and part-of-
+speech tagging [43] are wrapped as GATE plug-ins.
+
+token annotations
+
+JAPE grammar
+
+
+--------------------------------------------------------------
+ABSTRACT
+http://arxiv.org/pdf/cmp-lg/9503016.pdf
+
+Syntax-based systems syntax-based systems the user’s question is parsed 
+(i.e.analysed syntactically), and the resulting parse tree is directly mapped to 
+an expression in some database query language.
+Syntax-based systems use a grammar 
+that describes the possible syntactic structures of the user’s questions.
+<Figure 3>
+
+
+--------------------------------------------------------------
+ABSTRACT
+http://cs.stanford.edu/people/danqi/papers/emnlp2014.pdf
+
+arc-standard
+system  (Nivre,  2004),  one  of  the
+most  popular  transition  systems.
+
+Conventional approaches extract indicator fea-
+tures such as the conjunction of
+1~3
+elements
+from the stack/buffer using their words, POS tags
+or arc labels.  Table 1 lists a typical set of feature
+templates chosen from the ones of (Huang et al.,
+2009;  Zhang  and  Nivre,  2011).
+2
+These  features
+suffer from the following problems:
+
+1. Sparsity. 
+The features, especially lexicalized
+features are highly sparse.
+The  results  given  in  Table  2
+demonstrate that: (1) lexicalized features are
+indispensable; (2) Not only are the word-pair
+features ... vital for pre-
+dictions,  the  three-word  conjunctions ...
+are  also  very
+important.
+
+2. Incompletness
+3. Expensive feature computation
+
+
+--------------------------------------------------------------
+ABSTRACT
+https://aclweb.org/anthology/D/D15/D15-1162.pdf

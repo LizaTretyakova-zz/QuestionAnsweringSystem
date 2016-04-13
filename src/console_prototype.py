@@ -16,7 +16,9 @@ if __name__ == "__main__":
         "how many downloads were there in Russia?",
         "how many downloads were there in 2015?",
         "how many downloads were in 2016?",
+        "how many downloads were in Russia in 2015?",
         "how many downloads were there in Nigeria in 2014?",
+        "how many downloads were made in Russia and Germany?",
         "How many customers were in China in 2015?",
         "how many customers are there in Japan?",
         "How many customers are there in Japan?",
@@ -30,19 +32,3 @@ if __name__ == "__main__":
     for question in questions:
         print(question)
         print(process_question(question))
-
-
-        # TODO:
-        # нормальная генерация запросов,
-        # парсер вопроса, который возвращает типы, атрибуты, источник данных(!)
-        # и другая сущность, которая по этой распаршенной штуке выдаёт готовый ответ --
-        #  внутри себя тихо обращаясь к базе данных
-        # база                      база                        база
-        # класс-обёртка над ней     класс-обёртка над ней       класс-обёртка над ней (могут наследоваться от чего-то общего)
-        # ^почему бы ему не знать всё о полях своей таблицы?)
-        #
-        #                                       диспетчер [@@@] -- пытается найти информацию по нашему вопросу. Например, спрашивать все таблички, знают ли они чего про Васю
-        #                                                        ^
-        #                                                        |
-        # предложение ----идет на вход----> [лексер-парсер] -> (type: count/date/etc, entities: <слово из вопроса, Васи какие-нибудь>, ...)
-        # здесь надо использовать библиотеку, и из разбора предложения понимать entities.
