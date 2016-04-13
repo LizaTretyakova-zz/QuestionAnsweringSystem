@@ -3,7 +3,6 @@ import spacy.en
 from spacy.parts_of_speech import VERB
 from datetime import date
 
-
 from enum import Enum
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
 import nltk, re, pprint
@@ -15,6 +14,15 @@ ATTRIBUTES_LIST = [
     "named_entity",
     "action"
 ]
+
+PLURAL = {
+    "was": "were",
+    "were": "were",
+    "is": "are",
+    "are": "are",
+    "has been": "have been",
+    "have been": "have been"
+}
 
 ATTRIBUTES = {
     # place
@@ -100,11 +108,10 @@ TYPES = {
     }
 }
 
-
 nlp = spacy.en.English()
 
 
-def parse(question): #returns a list of question's attributes
+def parse(question):  # returns a list of question's attributes
     # question is a string
     # doc is spacy-parsed question
     doc = nlp(question)
@@ -112,11 +119,12 @@ def parse(question): #returns a list of question's attributes
     result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
     result.time = get_attribute_time_spacy(doc)
-    result.action = get_attribute_action_spacy(doc)
+    result.action = get_my_attribute(doc)
     result.product = get_attribute_product(question)
+    get_my_attribute(doc)
     return Question(
         question=question,
-        question_type=get_question_type(question, result.action),
+        question_type=get_question_type(question, get_attribute_action_spacy(doc)),
         answer_type=get_answer_type(question),
         attributes=result
     )
@@ -137,6 +145,58 @@ def get_attribute_by_list_without_sinonyms(attr_list, question):
     for word in attr_list:
         if word in question:
             return word
+
+
+def get_my_attribute(doc):
+    others = []
+    action = []
+    auxiliary = ""
+    for token in doc:
+        if token.pos_ == "VERB":
+            if token.dep_ == "aux":
+                auxiliary = token.orth_
+            elif token.dep_ == "auxpass":
+                auxiliary += token.orth_
+            else:
+                action.append(token.orth_)
+
+    if action is []:
+        action.append(auxiliary)
+        auxiliary = None
+    if auxiliary == "":
+        auxiliary = None
+
+    if action is not []:
+        if auxiliary is None:
+            auxiliary = ""
+        new_string = auxiliary + " " + " ".join(action)
+        temp_doc = nlp(new_string)
+        auxiliary = ""
+        action = []
+        auxiliaries = []
+        for token in temp_doc:
+            if token.pos_ == "VERB":
+                if token.dep_ == "aux":
+                    auxiliary = token.orth_
+                    auxiliaries.append(token)
+                elif token.dep_ == "auxpass":
+                    auxiliary += token.orth_
+                    auxiliaries.append(token)
+                elif token.dep_ == "acomp":
+                    auxiliary = token.head.orth_
+                    auxiliaries.append(token.head)
+        for token in temp_doc:
+            if not (token in auxiliaries):
+                action.append(token.orth_)
+
+    if auxiliary == "have" or auxiliary == "has":
+        action = [auxiliary] + action
+        auxiliary = None
+    if auxiliary == "":
+        auxiliary = None
+
+    print(auxiliary, action)
+    return ActionAttribute(action, others, auxiliary)
 
 
 def get_attribute_action_spacy(doc):
@@ -237,7 +297,7 @@ def get_attribute_time_spacy(doc):
         proposition = time.root.head
         if proposition.orth_ == "since":
             return TimeAttribute(time.orth_)
-        return TimeAttribute(time.orth_, time.orth_)
+        return TimeAttribute(find_number(time.orth_), find_number(time.orth_))
     return TimeAttribute()
 
 

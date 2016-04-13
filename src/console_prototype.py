@@ -27,7 +27,7 @@ if __name__ == "__main__":
         "When was DataGrip released?",
         "When is PyCon 2016?",
         "How many downloads have been since 2015?",
-        "how many downloads were 1 year ago?"
+        "how many downloads were 1 year ago?",
         "How many customers were since 2015?",
         "dkfsdlkgjhslkrghkrgjhlkj dkfjhgdlsfkjhg dfgjhkshg fgdsklhg?",
         "How many downloads of PyCharm were made from Russia in 2014?",

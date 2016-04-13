@@ -1,5 +1,5 @@
 from model import AnswerType, QuestionType
-from attributes import TYPES
+from attributes import TYPES, PLURAL
 from database_wrappers import DownloadsWrapper
 
 past_verbs = ["was", "were"]
@@ -23,14 +23,32 @@ def country_str(countries):
     return result
 
 
+def plural(verb):
+    if verb in PLURAL:
+        return PLURAL[verb]
+    else:
+        return verb
+
+
 def get_answer(query, answer):
+    verb = None
     if query.attributes.location is not None:
-        country = query.attributes.location
+        countries = query.attributes.location.countries
+    else:
+        countries = None
+
+    if query.attributes.action.auxiliary is None:
+        verb = " ".join(query.attributes.action.main_action)
+    else:
+        verb = query.attributes.action.auxiliary
     if query.question_type is QuestionType.DOWNLOADS:
-        return ("There" + xstr(query.attributes.action.main_action, " ", " ") + str(answer) + " downloads" + country_str(query.attributes.location.countries) +
+        if verb in PLURAL:
+            return ("There" + xstr(plural(verb), " ", " ") + str(answer) + " downloads" + country_str(countries) +
                 xstr(query.attributes.time.start, " in "))
+        else:
+            return "Clients" + xstr(verb, " ", " ") + str(answer) + country_str(countries) + "times"
     if query.question_type is QuestionType.CUSTOMERS:
-        return ("There" + xstr(query.attributes.action.main_action, " ", " ") + str(answer) + " customers " + country_str(query.attributes.location.countries) + " " +
+        return ("There" + xstr(plural(verb), " ", " ") + str(answer) + " customers" + country_str(countries) +
                 xstr(query.attributes.time.start, " in "))
 
 
