@@ -19,7 +19,27 @@ ATTRIBUTES_LIST = [
 ATTRIBUTES = {
     # place
     "country": ["russia", "japan", "germany"],
-    "product": ["pycharm", "appcode", "rubymine", "resharper", "intellijidea"],
+    "product": [
+        "intellij",
+        "pycharm",
+        "appcode",
+        "rubymine",
+        "resharper",
+        "phpstorm",
+        "webstorm",
+        "clion",
+        "datagrip",
+        "resharpercpp",
+        "dottrace",
+        "dotcover",
+        "dotmemory",
+        "dotpeek",
+        "teamcity",
+        "youtrack",
+        "upsource",
+        "hub",
+        "mps"
+    ],
     "year": [],
     "named_entity": ["Microsoft", "JetBrains"],
     "action": ["released", "bought"],
@@ -39,6 +59,20 @@ SINONYMS = {
     "AppCode": ["appcode"],
     "RubyMine": ["rubymine"],
     "ReSharper": ["resharper"],
+    "PhpStorm": ["phpstorm"],
+    "WebStorm": ["webstorm"],
+    "CLion": ["clion"],
+    "DataGrip": ["datagrip"],
+    "ReSharperCpp": ["resharpercpp"],
+    "dotTrace": ["dottrace"],
+    "dotCover": ["dotcover"],
+    "dotMemory": ["dotmemory"],
+    "dotPeek": ["dotpeek"],
+    "TeamCity": ["teamcity"],
+    "YouTrack": ["youtrack"],
+    "Upsource": ["upsource"],
+    "Hub": ["hub"],
+    "MPS": ["mps"],
     "Russia": ["russia", "russian federation"],
     "Japan": ["japan", "land of the rising sun"],
     "Germany": ["germany", "federal republic of germany"],
@@ -52,25 +86,20 @@ TYPES = {
         "when": AnswerType.DATE
     },
 
-    "help_words": {
+    "qualifier_words": {
         "download": QuestionType.DOWNLOADS,
         "customer": QuestionType.CUSTOMERS,
         "revenue": QuestionType.SALES,
-        "release": QuestionType.EVENTS,
+    },
+
+    "action_words": {
+        "download": QuestionType.DOWNLOADS,
+        "buy": QuestionType.SALES,
+        "sell": QuestionType.SALES,
+        "release": QuestionType.EVENTS
     }
 }
 
-
-"""def parse(question):  # returns a list of question's attributes
-    # question = question.lower()
-    result = Attributes()
-    result.location = get_attribute_location(question)
-    result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action(question)
-    result.time = get_attribute_year(question)
-    result.product = get_attribute_product(question)
-    return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
-                    attributes=result)"""""
 
 nlp = spacy.en.English()
 
@@ -80,16 +109,20 @@ def parse(question): #returns a list of question's attributes
     # doc is spacy-parsed question
     doc = nlp(question)
     result = Attributes()
-    result.location = get_attribute_location_simple(question)
+    result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action(question)
     result.time = get_attribute_time_spacy(doc)
+    result.action = get_attribute_action_spacy(doc)
     result.product = get_attribute_product(question)
-    return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
-                    attributes=result)
+    return Question(
+        question=question,
+        question_type=get_question_type(question, result.action),
+        answer_type=get_answer_type(question),
+        attributes=result
+    )
 
 
-def get_attribute_action(question):
+def get_attribute_action_without_synonims(question):
     main_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["action"], question)
     extra_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["extra action"], question)
     if extra_action is None:
@@ -114,7 +147,7 @@ def get_attribute_action_spacy(doc):
             action = token.lemma_
         elif token.pos is VERB:
             others.append(token.lemma_)
-    return ActionAttribute(action, others)
+    return ActionAttribute(action=action, other=others)
 
 
 def _get_by_location(location):
@@ -122,29 +155,27 @@ def _get_by_location(location):
     return []
 
 
-def get_attribute_location(doc):
+def get_attribute_location_spacy(doc):
     exceptions = []
     candidates = []
-    # result = []
+    locations = []
     # TODO: to use feature-extraction to determine negative/positive
     for ne in doc.ents:
         if ne.label_ == 'GPE':
-            if ne.head.lower_ in NEGATIVES:
-                exceptions.append(ne.lemma_)
+            if ne.root.lower_ in NEGATIVES:
+                exceptions.append(ne.orth_)
             else:
-                candidates.append(ne.lemma_)
+                candidates.append(ne.orth_)
         elif ne.label_ == 'LOC':
-            gpe_list = _get_by_location(ne.lemma_)
-            if ne.head.lower_ in NEGATIVES:
+            gpe_list = _get_by_location(ne.orth_)
+            if ne.root.lower_ in NEGATIVES:
                 exceptions.extend(gpe_list)
             else:
+                locations.append(ne.orth_)
                 candidates.extend(gpe_list)
-    return [x for x in candidates if x not in exceptions]
-
-
-def _get_by_location(location):
-    # TODO: call the DB containing countries
-    return []
+    country_list = [x for x in candidates if x not in exceptions]
+    result = LocationAttribute(loc_list=locations, countries=country_list)
+    return result
 
 
 def get_attribute_action_simple(question):
@@ -178,7 +209,7 @@ def get_attribute_location_simple(question):
 
 
 def get_attribute_product(question):
-    return get_attribute_by_list(ATTRIBUTES["product"], question)
+    return get_attribute_by_list(ATTRIBUTES["product"], question.lower())
 
 
 def get_attribute_by_list(attr_list, question):
@@ -227,10 +258,19 @@ def get_attribute_time(question):
         return TimeAttribute()
 
 
-def get_question_type(question):
-    for word, q_type in TYPES["help_words"].items():
+def get_question_type(question, action):
+    action_type = get_question_type_by_action(action)
+    if action_type is not None:
+        return action_type
+    for word, q_type in TYPES["qualifier_words"].items():
         if word in question:
             return q_type
+
+
+def get_question_type_by_action(action):
+    q_words = TYPES["action_words"]
+    if action.main_action in q_words.keys():
+        return q_words[action.main_action]
 
 
 def get_answer_type(question):

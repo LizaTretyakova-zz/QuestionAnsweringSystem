@@ -64,7 +64,7 @@ class ActionAttribute(BaseAttribute):
     type = "action"
 
     def __init__(self, action=None, other=None):
-        super().__init__(self)
+        super().__init__()
         self.main_action = action
         self.other = other
 
