@@ -18,7 +18,27 @@ ATTRIBUTES_LIST = [
 ATTRIBUTES = {
     # place
     "country": ["russia", "japan", "germany"],
-    "product": ["pycharm", "appcode", "rubymine", "resharper", "intellijidea"],
+    "product": [
+        "intellij",
+        "pycharm",
+        "appcode",
+        "rubymine",
+        "resharper",
+        "phpstorm",
+        "webstorm",
+        "clion",
+        "datagrip",
+        "resharpercpp",
+        "dottrace",
+        "dotcover",
+        "dotmemory",
+        "dotpeek",
+        "teamcity",
+        "youtrack",
+        "upsource",
+        "hub",
+        "mps"
+    ],
     "year": [],
     "named_entity": ["Microsoft", "JetBrains"],
     "action": ["released", "bought"],
@@ -65,11 +85,17 @@ TYPES = {
         "when": AnswerType.DATE
     },
 
-    "help_words": {
+    "qualifier_words": {
         "download": QuestionType.DOWNLOADS,
         "customer": QuestionType.CUSTOMERS,
         "revenue": QuestionType.SALES,
-        "release": QuestionType.EVENTS,
+    },
+
+    "action_words": {
+        "download": QuestionType.DOWNLOADS,
+        "buy": QuestionType.SALES,
+        "sell": QuestionType.SALES,
+        "release": QuestionType.EVENTS
     }
 }
 
@@ -87,8 +113,12 @@ def parse(question): #returns a list of question's attributes
     result.action = get_attribute_action_spacy(doc)
     result.time = get_attribute_time(question)
     result.product = get_attribute_product(question)
-    return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
-                    attributes=result)
+    return Question(
+        question=question,
+        question_type=get_question_type(question, result.action),
+        answer_type=get_answer_type(question),
+        attributes=result
+    )
 
 
 def get_attribute_action_without_synonims(question):
@@ -202,10 +232,19 @@ def get_attribute_time(question):
         return TimeAttribute()
 
 
-def get_question_type(question):
-    for word, q_type in TYPES["help_words"].items():
+def get_question_type(question, action):
+    action_type = get_question_type_by_action(action)
+    if action_type is not None:
+        return action_type
+    for word, q_type in TYPES["qualifier_words"].items():
         if word in question:
             return q_type
+
+
+def get_question_type_by_action(action):
+    q_words = TYPES["action_words"]
+    if action.main_action in q_words.keys():
+        return q_words[action.main_action]
 
 
 def get_answer_type(question):

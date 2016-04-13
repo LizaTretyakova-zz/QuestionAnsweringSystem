@@ -24,10 +24,10 @@ def get_answer(query, answer):
     if query.attributes.location is not None:
         country = query.attributes.location
     if query.question_type is QuestionType.DOWNLOADS:
-        return ("There" + xstr(query.attributes.action, " ", " ") + str(answer) + " downloads" + country_str(query.attributes.location.countries) +
+        return ("There" + xstr(query.attributes.action.main_action, " ", " ") + str(answer) + " downloads" + country_str(query.attributes.location.countries) +
                 xstr(query.attributes.time.start, " in "))
     if query.question_type is QuestionType.CUSTOMERS:
-        return ("There" + xstr(query.attributes.action, " ", " ") + str(answer) + " customers " + country_str(query.attributes.location.countries) + " " +
+        return ("There" + xstr(query.attributes.action.main_action, " ", " ") + str(answer) + " customers " + country_str(query.attributes.location.countries) + " " +
                 xstr(query.attributes.time.start, " in "))
 
 
