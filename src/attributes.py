@@ -73,7 +73,7 @@ def parse(question): #returns a list of question's attributes
     doc = nlp(question)
 
     result = Attributes()
-    result.country = get_attribute_location(question)
+    result.country = get_attribute_location(doc)
     result.named_entity = get_attribute_named_entity(question)
     result.action = get_attribute_action(doc)
     result.year = get_attribute_year(question)
@@ -89,7 +89,7 @@ def get_attribute_action(doc):
             action = token.lemma_
         elif token.pos is VERB:
             others.append(token.lemma_)
-    return ActionAttribute(action, others)
+    return ActionAttribute(action=action, other=others)
 
 
 def _get_by_location(location):
