@@ -116,6 +116,11 @@ def get_attribute_action_spacy(doc):
     return ActionAttribute(action, others)
 
 
+def _get_by_location(location):
+    # TODO: call the DB containing countries
+    return []
+
+
 def get_attribute_location(doc):
     exceptions = []
     candidates = []
