@@ -84,7 +84,7 @@ def parse(question): #returns a list of question's attributes
     result = Attributes()
     result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action_without_synonims(question)
+    result.action = get_attribute_action_spacy(doc)
     result.time = get_attribute_time(question)
     result.product = get_attribute_product(question)
     return Question(question=question, question_type=get_question_type(question), answer_type=get_answer_type(question),
