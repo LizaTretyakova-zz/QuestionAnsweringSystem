@@ -189,7 +189,7 @@ def get_my_attribute(doc):
             if not (token in auxiliaries):
                 action.append(token.orth_)
 
-    if auxiliary == "have" or auxiliary == "has":
+    if auxiliary == "have" or auxiliary == "has" and len(action) > 0 and action[0] == "been":
         action = [auxiliary] + action
         auxiliary = None
     if auxiliary == "":
