@@ -44,10 +44,11 @@ class BaseAttribute:
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start=None, end=None):
+    def __init__(self, start=None, end=None, proposition=None):
         super().__init__()
         self.start = start
         self.end = end
+        self.proposition = proposition
 
 
 class LocationAttribute(BaseAttribute):

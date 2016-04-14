@@ -6,11 +6,11 @@ past_verbs = ["was", "were"]
 present_verbs = ["is", "ara"]
 
 
-def xstr(smth, prefix = "", suffix = ""):
+def xstr(smth, prefix=""):
     if smth is None:
         return ""
     else:
-        return prefix + str(smth) + suffix
+        return prefix + str(smth)
 
 
 def country_str(countries):
@@ -30,6 +30,20 @@ def plural(verb):
         return verb
 
 
+def create_time_part(time):
+    if time.start is None and time.end is None:
+        return ''
+    elif time.end is None:
+        return " " + " ".join(time.proposition) + " " + str(time.start)
+    elif time.start is not None and time.end is not None and time.end != time.start:
+        if len(time.proposition) == 2:
+            return " from " + str(time.start) + " to " + str(time.end)
+        else:
+            return " between " + str(time.start) + " and " + str(time.end)
+    else:
+        return ' in ' + str(time.start)
+
+
 def get_answer(query, answer):
     verb = None
     if query.attributes.location is not None:
@@ -43,13 +57,13 @@ def get_answer(query, answer):
         verb = query.attributes.action.auxiliary
     if query.question_type is QuestionType.DOWNLOADS:
         if verb in PLURAL:
-            return ("There" + xstr(plural(verb), " ", " ") + str(answer) + " downloads" + country_str(countries) +
-                xstr(query.attributes.time.start, " in "))
+            return ("There" + xstr(plural(verb), " ") + " " + str(answer) + " downloads" + country_str(countries) +
+                    create_time_part(query.attributes.time))
         else:
-            return "Clients" + xstr(verb, " ", " ") + str(answer) + country_str(countries) + "times"
+            return "Clients" + xstr(verb, " ") + " " + str(answer) + country_str(countries) + " times"
     if query.question_type is QuestionType.CUSTOMERS:
-        return ("There" + xstr(plural(verb), " ", " ") + str(answer) + " customers" + country_str(countries) +
-                xstr(query.attributes.time.start, " in "))
+        return ("There" + xstr(plural(verb), " ") + " " + str(answer) + " customers" + country_str(countries) +
+                create_time_part(query.attributes.time))
 
 
 # deprecated :)

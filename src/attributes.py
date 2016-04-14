@@ -293,11 +293,19 @@ def get_attribute_time_spacy(doc):
         if "ago" in time.orth_:
             cur_year = date.today().year
             count_years = find_number(time.orth_)
-            return TimeAttribute(cur_year - count_years, cur_year - count_years)
+            return TimeAttribute(cur_year - count_years, cur_year - count_years, ["in"]                                    )
+        if "between" in time.orth_:
+            part1 = time.orth_.split("and")[0]
+            part2 = time.orth_.split("and")[1]
+            return TimeAttribute(find_number(part1), find_number(part2), ["between"])
         proposition = time.root.head
-        if proposition.orth_ == "since":
-            return TimeAttribute(time.orth_)
-        return TimeAttribute(find_number(time.orth_), find_number(time.orth_))
+        if proposition.orth_ == ["since"]:
+            return TimeAttribute(time.orth_, None, "since")
+        elif proposition.orth_ == "form":
+            part1 = time.split("to")[0]
+            part2 = time.split("to")[1]
+            return TimeAttribute(find_number(part1), find_number(part2), ["from", "to"])
+        return TimeAttribute(find_number(time.orth_), find_number(time.orth_), ["in"])
     return TimeAttribute()
 
 
@@ -306,7 +314,7 @@ def find_number(text):
     if search_result is not None:
         return int(search_result.group(0))
     else:
-        return 0
+        return None
 
 
 def get_attribute_time(question):
