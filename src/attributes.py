@@ -118,13 +118,12 @@ def parse(question):  # returns a list of question's attributes
     result = Attributes()
     result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
-    result.time = get_attribute_time_spacy(doc)
-    result.action = get_my_attribute(doc)
+    result.time = get_attribute_time_spacy(doc, question)
+    result.action = get_attribute_action(doc)
     result.product = get_attribute_product(question)
-    get_my_attribute(doc)
     return Question(
         question=question,
-        question_type=get_question_type(question, get_attribute_action_spacy(doc)),
+        question_type=get_question_type(question, get_attribute_action_lemma(doc)),
         answer_type=get_answer_type(question),
         attributes=result
     )
@@ -146,60 +145,7 @@ def get_attribute_by_list_without_sinonyms(attr_list, question):
         if word in question:
             return word
 
-
-def get_my_attribute(doc):
-    others = []
-    action = []
-    auxiliary = ""
-    for token in doc:
-        if token.pos_ == "VERB":
-            if token.dep_ == "aux":
-                auxiliary = token.orth_
-            elif token.dep_ == "auxpass":
-                auxiliary += token.orth_
-            else:
-                action.append(token.orth_)
-
-    if action is []:
-        action.append(auxiliary)
-        auxiliary = None
-    if auxiliary == "":
-        auxiliary = None
-
-    if action is not []:
-        if auxiliary is None:
-            auxiliary = ""
-        new_string = auxiliary + " " + " ".join(action)
-        temp_doc = nlp(new_string)
-        auxiliary = ""
-        action = []
-        auxiliaries = []
-        for token in temp_doc:
-            if token.pos_ == "VERB":
-                if token.dep_ == "aux":
-                    auxiliary = token.orth_
-                    auxiliaries.append(token)
-                elif token.dep_ == "auxpass":
-                    auxiliary += token.orth_
-                    auxiliaries.append(token)
-                elif token.dep_ == "acomp":
-                    auxiliary = token.head.orth_
-                    auxiliaries.append(token.head)
-        for token in temp_doc:
-            if not (token in auxiliaries):
-                action.append(token.orth_)
-
-    if auxiliary == "have" or auxiliary == "has" and len(action) > 0 and action[0] == "been":
-        action = [auxiliary] + action
-        auxiliary = None
-    if auxiliary == "":
-        auxiliary = None
-
-    print(auxiliary, action)
-    return ActionAttribute(action, others, auxiliary)
-
-
-def get_attribute_action_spacy(doc):
+def get_attribute_action_lemma(doc):
     action = None
     others = []
     for token in doc:
@@ -209,6 +155,18 @@ def get_attribute_action_spacy(doc):
             others.append(token.lemma_)
     return ActionAttribute(action=action, other=others)
 
+def get_attribute_action(doc):
+    action = []
+    others = []
+    auxiliary = []
+    for token in doc:
+        if token.head is token:
+            action = [token.orth_]
+        elif token.pos is VERB and (token.dep_ == "aux" or token.dep_ == "auxpass"):
+            auxiliary.append(token.orth_)
+        elif token.pos is VERB:
+            others.append(token.orth_)
+    return ActionAttribute(action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
 
 def _get_by_location(location):
     # TODO: call the DB containing countries
@@ -284,11 +242,16 @@ def get_repr(word):
             return repr
 
 
-def get_attribute_time_spacy(doc):
+def get_attribute_time_spacy(doc, question):
     times = []
     for ent in doc.ents:
         if ent.label_ == "DATE":
             times.append(ent)
+
+#    from_data = None
+    propositions = []
+    global from_data;
+    from_data = None
     for time in times:
         if "ago" in time.orth_:
             cur_year = date.today().year
@@ -299,14 +262,30 @@ def get_attribute_time_spacy(doc):
             part2 = time.orth_.split("and")[1]
             return TimeAttribute(find_number(part1), find_number(part2), ["between"])
         proposition = time.root.head
-        if proposition.orth_ == ["since"]:
-            return TimeAttribute(time.orth_, None, "since")
-        elif proposition.orth_ == "form":
-            part1 = time.split("to")[0]
-            part2 = time.split("to")[1]
-            return TimeAttribute(find_number(part1), find_number(part2), ["from", "to"])
+        if proposition.orth_ == "since":
+            return TimeAttribute(time.orth_, None, ["since"])
+        elif proposition.orth_ == "from":
+            propositions.append("from")
+            if "to" in time.orth_:
+                propositions.append("to")
+            elif "until" in time.orth_:
+                propositions.append("until")
+            elif "till" in time.orth_:
+                propositions.append("till")
+            if len(propositions) > 1:
+                part1 = time.orth_.split(propositions[1])[0]
+                part2 = time.orth_.split(propositions[1])[1]
+                return TimeAttribute(find_number(part1), find_number(part2), propositions)
+            from_data = find_number(time.orth_);
+        elif proposition.orth_ == "to" or proposition.orth_ == "till" or proposition.orth_ == "until":
+            proposition.append(proposition.orth_)
+            return TimeAttribute(from_data, find_number(time.orth_), propositions)
+        elif proposition.orth_ == "after" or proposition.orth_ == "by":
+            return TimeAttribute(find_number(time.orth_), None, ["after"]);
+        elif proposition.orth_ == "before":
+            return TimeAttribute(None, find_number(time.orth_), ["before"]);
         return TimeAttribute(find_number(time.orth_), find_number(time.orth_), ["in"])
-    return TimeAttribute()
+    return TimeAttribute(from_data, None, propositions)
 
 
 def find_number(text):
