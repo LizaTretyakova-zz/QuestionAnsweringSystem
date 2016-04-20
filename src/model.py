@@ -54,17 +54,17 @@ class TimeAttribute(BaseAttribute):
 class LocationAttribute(BaseAttribute):
     type = "location"
 
-    def __init__(self, loc_list=None, countries=None, city=None):
+    def __init__(self, locations=None, countries=None, cities=None):
         super().__init__()
-        self.location = loc_list
+        self.locations = locations
         self.countries = countries
-        self.city = city
+        self.cities = cities
 
 
 class ActionAttribute(BaseAttribute):
     type = "action"
 
-    def __init__(self, action_lemma = None, action=None, other=None, auxiliary= None):
+    def __init__(self, action_lemma=None, action=None, other=None, auxiliary= None):
         super().__init__()
         self.action_lemma = action_lemma
         self.action = action
@@ -85,3 +85,11 @@ class Attributes:
 
     def print(self):
         print(self.__dict__)
+        print("Location: ", end='')
+        print("location = ", end='')
+        print(self.location.locations, end='')
+        print(" countries = ", end='')
+        print(self.location.countries, end='')
+        print(" cities = ", end='')
+        print(self.location.cities)
+

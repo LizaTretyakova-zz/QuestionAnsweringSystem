@@ -2,10 +2,9 @@
 import spacy.en
 from spacy.parts_of_speech import VERB
 from datetime import date
-
-from enum import Enum
+from geopy.geocoders import Nominatim
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
-import nltk, re, pprint
+import nltk, re
 
 ATTRIBUTES_LIST = [
     "country",
@@ -150,25 +149,53 @@ def _get_by_location(location):
 
 
 def get_attribute_location_spacy(doc):
-    exceptions = []
-    candidates = []
-    locations = []
-    # TODO: to use feature-extraction to determine negative/positive
+    country_exceptions = []
+    country_candidates = []
+    city_exceptions = []
+    city_candidates = []
+    locations = [] # better to say "regions" -- continents and administrative
+
+    geolocator = Nominatim()
+
     for ne in doc.ents:
-        if ne.label_ == 'GPE':
-            if ne.root.lower_ in NEGATIVES:
-                exceptions.append(ne.orth_)
-            else:
-                candidates.append(ne.orth_)
-        elif ne.label_ == 'LOC':
+        if ne.label_ not in ['GPE', 'LOC']:
+            continue
+
+        if ne.label_ is 'LOC':
             gpe_list = _get_by_location(ne.orth_)
             if ne.root.lower_ in NEGATIVES:
-                exceptions.extend(gpe_list)
+                country_exceptions.extend(gpe_list)
             else:
                 locations.append(ne.orth_)
-                candidates.extend(gpe_list)
-    country_list = [x for x in candidates if x not in exceptions]
-    result = LocationAttribute(loc_list=locations, countries=country_list)
+                country_candidates.extend(gpe_list)
+            continue
+
+        # otherwise
+        # it is either a city (type='city' & label='GPE')
+        #           or a country (type='administrative' & label='GPE')
+        exceptions = []
+        candidates = []
+        type = geolocator.geocode(ne.orth_).raw['type']
+        if type == 'city':
+            exceptions = city_exceptions
+            candidates = city_candidates
+        elif type == 'administrative':
+            exceptions = country_exceptions
+            candidates = country_candidates
+        else:
+            print('TYPE:')
+            print(type)
+            print('city')
+            print('administrative')
+        # although we separate the results, the processing is similar for both
+        if ne.root.lower_ in NEGATIVES:
+            exceptions.append(ne.orth_)
+        else:
+            candidates.append(ne.orth_)
+
+    country_list = [x for x in country_candidates if x not in country_exceptions]
+    city_list = [x for x in city_candidates if x not in city_exceptions]
+    result = LocationAttribute(locations=locations, countries=country_list, cities = city_list)
     return result
 
 
@@ -199,7 +226,7 @@ def get_attribute_location_simple(question):
     places = []
     for gpe in gpe_list:
         places.append(gpe[0])
-    return LocationAttribute(loc_list=gpe_list, countries=places)
+    return LocationAttribute(locations=gpe_list, countries=places)
 
 
 def get_attribute_product(question):
@@ -252,14 +279,14 @@ def get_attribute_time_spacy(doc, question):
                 part1 = time.orth_.split(propositions[1])[0]
                 part2 = time.orth_.split(propositions[1])[1]
                 return TimeAttribute(find_number(part1), find_number(part2), propositions)
-            from_data = find_number(time.orth_);
+            from_data = find_number(time.orth_)
         elif proposition.orth_ == "to" or proposition.orth_ == "till" or proposition.orth_ == "until":
             proposition.append(proposition.orth_)
             return TimeAttribute(from_data, find_number(time.orth_), propositions)
         elif proposition.orth_ == "after" or proposition.orth_ == "by":
-            return TimeAttribute(find_number(time.orth_), None, ["after"]);
+            return TimeAttribute(find_number(time.orth_), None, ["after"])
         elif proposition.orth_ == "before":
-            return TimeAttribute(None, find_number(time.orth_), ["before"]);
+            return TimeAttribute(None, find_number(time.orth_), ["before"])
         return TimeAttribute(find_number(time.orth_), find_number(time.orth_), ["in"])
     return TimeAttribute(from_data, None, propositions)
 

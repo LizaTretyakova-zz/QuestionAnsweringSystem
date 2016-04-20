@@ -29,6 +29,7 @@ if __name__ == "__main__":
         "How many downloads have been since 2015?",
         "how many downloads were 1 year ago?",
         "How many customers were since 2015?",
+
         "dkfsdlkgjhslkrghkrgjhlkj dkfjhgdlsfkjhg dfgjhkshg fgdsklhg?",
         "How many downloads of PyCharm were made from Russia in 2014?",
         "How many different products are downloaded from Russia?", # potentially okay question
@@ -44,7 +45,11 @@ if __name__ == "__main__":
         "What was the time of the first PyCharm download?",
         "What number of countries is PyCharm downloaded from?",
         "When was the last PyCharm download?",
-        "When have xamarin been downloaded?"
+        "When have xamarin been downloaded?",
+
+        "How many downloads of PyCharm were made from Munich in 2014?",
+        "How many different products are downloaded from Saint Petersburg?", # potentially okay question
+        "how many downloads were there in Munich and Saint Petersburg?"
     ]
 
     for question in questions:
