@@ -54,7 +54,7 @@ def get_answer(query, answer):
         countries = None
 
     if query.attributes.action.auxiliary is None or query.attributes.action.auxiliary == "":
-        verb = query.attributes.action.main_action
+        verb = query.attributes.action.action
     else:
         verb = query.attributes.action.auxiliary
     if query.question_type is QuestionType.DOWNLOADS:

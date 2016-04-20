@@ -123,50 +123,26 @@ def parse(question):  # returns a list of question's attributes
     result.product = get_attribute_product(question)
     return Question(
         question=question,
-        question_type=get_question_type(question, get_attribute_action_lemma(doc)),
+        question_type=get_question_type(question, result.action),
         answer_type=get_answer_type(question),
         attributes=result
     )
 
 
-def get_attribute_action_without_synonims(question):
-    main_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["action"], question)
-    extra_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["extra action"], question)
-    if extra_action is None:
-        return main_action
-    elif main_action is None:
-        return extra_action
-    else:
-        return extra_action + " " + main_action
-
-
-def get_attribute_by_list_without_sinonyms(attr_list, question):
-    for word in attr_list:
-        if word in question:
-            return word
-
-def get_attribute_action_lemma(doc):
-    action = None
-    others = []
-    for token in doc:
-        if token.head is token:
-            action = token.lemma_
-        elif token.pos is VERB:
-            others.append(token.lemma_)
-    return ActionAttribute(action=action, other=others)
-
 def get_attribute_action(doc):
+    action_lemma = None
     action = []
     others = []
     auxiliary = []
     for token in doc:
         if token.head is token:
+            action_lemma = token.lemma_
             action = [token.orth_]
         elif token.pos is VERB and (token.dep_ == "aux" or token.dep_ == "auxpass"):
             auxiliary.append(token.orth_)
         elif token.pos is VERB:
             others.append(token.orth_)
-    return ActionAttribute(action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
+    return ActionAttribute(action_lemma=action_lemma, action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
 
 def _get_by_location(location):
     # TODO: call the DB containing countries
@@ -316,8 +292,8 @@ def get_question_type(question, action):
 
 def get_question_type_by_action(action):
     q_words = TYPES["action_words"]
-    if action.main_action in q_words.keys():
-        return q_words[action.main_action]
+    if action.action_lemma in q_words.keys():
+        return q_words[action.action_lemma]
 
 
 def get_answer_type(question):

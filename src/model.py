@@ -64,9 +64,10 @@ class LocationAttribute(BaseAttribute):
 class ActionAttribute(BaseAttribute):
     type = "action"
 
-    def __init__(self, action=None, other=None, auxiliary= None):
+    def __init__(self, action_lemma = None, action=None, other=None, auxiliary= None):
         super().__init__()
-        self.main_action = action
+        self.action_lemma = action_lemma
+        self.action = action
         self.other = other
         self.auxiliary = auxiliary
 
