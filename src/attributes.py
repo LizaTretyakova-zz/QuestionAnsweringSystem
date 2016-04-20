@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import spacy.en
 from spacy.parts_of_speech import VERB
-
+from datetime import date
 
 from enum import Enum
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
@@ -14,6 +14,15 @@ ATTRIBUTES_LIST = [
     "named_entity",
     "action"
 ]
+
+PLURAL = {
+    "was": "were",
+    "were": "were",
+    "is": "are",
+    "are": "are",
+    "has been": "have been",
+    "have been": "have been"
+}
 
 ATTRIBUTES = {
     # place
@@ -99,23 +108,22 @@ TYPES = {
     }
 }
 
-
 nlp = spacy.en.English()
 
 
-def parse(question): #returns a list of question's attributes
+def parse(question):  # returns a list of question's attributes
     # question is a string
     # doc is spacy-parsed question
     doc = nlp(question)
     result = Attributes()
     result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
-    result.action = get_attribute_action_spacy(doc)
-    result.time = get_attribute_time(question)
+    result.time = get_attribute_time_spacy(doc, question)
+    result.action = get_attribute_action(doc)
     result.product = get_attribute_product(question)
     return Question(
         question=question,
-        question_type=get_question_type(question, result.action),
+        question_type=get_question_type(question, get_attribute_action_lemma(doc)),
         answer_type=get_answer_type(question),
         attributes=result
     )
@@ -137,8 +145,7 @@ def get_attribute_by_list_without_sinonyms(attr_list, question):
         if word in question:
             return word
 
-
-def get_attribute_action_spacy(doc):
+def get_attribute_action_lemma(doc):
     action = None
     others = []
     for token in doc:
@@ -148,6 +155,18 @@ def get_attribute_action_spacy(doc):
             others.append(token.lemma_)
     return ActionAttribute(action=action, other=others)
 
+def get_attribute_action(doc):
+    action = []
+    others = []
+    auxiliary = []
+    for token in doc:
+        if token.head is token:
+            action = [token.orth_]
+        elif token.pos is VERB and (token.dep_ == "aux" or token.dep_ == "auxpass"):
+            auxiliary.append(token.orth_)
+        elif token.pos is VERB:
+            others.append(token.orth_)
+    return ActionAttribute(action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
 
 def _get_by_location(location):
     # TODO: call the DB containing countries
@@ -221,6 +240,60 @@ def get_repr(word):
     for repr in SINONYMS:
         if word in SINONYMS[repr]:
             return repr
+
+
+def get_attribute_time_spacy(doc, question):
+    times = []
+    for ent in doc.ents:
+        if ent.label_ == "DATE":
+            times.append(ent)
+
+#    from_data = None
+    propositions = []
+    global from_data;
+    from_data = None
+    for time in times:
+        if "ago" in time.orth_:
+            cur_year = date.today().year
+            count_years = find_number(time.orth_)
+            return TimeAttribute(cur_year - count_years, cur_year - count_years, ["in"]                                    )
+        if "between" in time.orth_:
+            part1 = time.orth_.split("and")[0]
+            part2 = time.orth_.split("and")[1]
+            return TimeAttribute(find_number(part1), find_number(part2), ["between"])
+        proposition = time.root.head
+        if proposition.orth_ == "since":
+            return TimeAttribute(time.orth_, None, ["since"])
+        elif proposition.orth_ == "from":
+            propositions.append("from")
+            if "to" in time.orth_:
+                propositions.append("to")
+            elif "until" in time.orth_:
+                propositions.append("until")
+            elif "till" in time.orth_:
+                propositions.append("till")
+            if len(propositions) > 1:
+                part1 = time.orth_.split(propositions[1])[0]
+                part2 = time.orth_.split(propositions[1])[1]
+                return TimeAttribute(find_number(part1), find_number(part2), propositions)
+            from_data = find_number(time.orth_);
+        elif proposition.orth_ == "to" or proposition.orth_ == "till" or proposition.orth_ == "until":
+            proposition.append(proposition.orth_)
+            return TimeAttribute(from_data, find_number(time.orth_), propositions)
+        elif proposition.orth_ == "after" or proposition.orth_ == "by":
+            return TimeAttribute(find_number(time.orth_), None, ["after"]);
+        elif proposition.orth_ == "before":
+            return TimeAttribute(None, find_number(time.orth_), ["before"]);
+        return TimeAttribute(find_number(time.orth_), find_number(time.orth_), ["in"])
+    return TimeAttribute(from_data, None, propositions)
+
+
+def find_number(text):
+    search_result = re.search('\d+', text)
+    if search_result is not None:
+        return int(search_result.group(0))
+    else:
+        return None
 
 
 def get_attribute_time(question):
