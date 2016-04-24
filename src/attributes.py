@@ -1,10 +1,82 @@
 #!/usr/bin/env python3
+from enum import Enum
+
+import psycopg2
 import spacy.en
 from spacy.parts_of_speech import VERB
 from datetime import date
 from geopy.geocoders import Nominatim
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
+from database_wrappers import USER, PASSWORD
 import nltk, re
+
+
+RegionType = {
+    'COUNTRY': 0,
+    'CITY': 1
+}
+
+
+DEFAULT_REGION = 'World'
+
+REGIONS = {
+    'World': 29489,
+    'Arab World': 29490,
+    'Central Europe and the Baltics': 29491,
+    'Caribbean small states': 29492,
+    'East Asia & Pacific': 29493,
+    'Europe & Central Asia': 29494,
+    'Euro area': 29495,
+    'European Union': 29496,
+    'Fragile and conflict affected situations': 29497,
+    'Latin America & Caribbean': 29498,
+    'Least developed countries: UN classification': 29499,
+    'Middle East & North Africa': 29500,
+    'North America': 29501,
+    'OECD': 29502,
+    # 'OECD members': 29502,
+    'Other small states': 29503,
+    'Pacific island small states': 29504,
+    'South Asia': 29505,
+    'Sub-Saharan Africa': 29506,
+    'Small states': 29507,
+    'St. Martin (French part)': 29508,
+    'Sint Maarten (Dutch part)': 29509,
+    'South Sudan': 29510,
+    'British Overseas Territories': 29512,
+    'Realm of New Zealand': 29513,
+    'APAC': 29514,
+    'EMEA': 29516
+    # 'Europe, the Middle East and Africa (EMEA)': 29516
+}
+
+# REGIONS = [
+#     'Arab World',
+#     'Central Europe and the Baltics',
+#     'Caribbean small states',
+#     'East Asia & Pacific',
+#     'Europe & Central Asia',
+#     'Euro area',
+#     'European Union',
+#     'Fragile and conflict affected situations',
+#     'Latin America & Caribbean',
+#     'Least developed countries: UN classification',
+#     'Middle East & North Africa',
+#     'North America',
+#     'OECD members',
+#     'Other small states',
+#     'Pacific island small states',
+#     'South Asia',
+#     'Sub-Saharan Africa',
+#     'Small states',
+#     'St. Martin (French part)',
+#     'Sint Maarten (Dutch part)',
+#     'South Sudan',
+#     'British Overseas Territories',
+#     'Realm of New Zealand',
+#     'APAC',
+#     'Europe, the Middle East and Africa (EMEA)'
+# ]
 
 ATTRIBUTES_LIST = [
     "country",
@@ -141,11 +213,39 @@ def get_attribute_action(doc):
             auxiliary.append(token.orth_)
         elif token.pos is VERB:
             others.append(token.orth_)
-    return ActionAttribute(action_lemma=action_lemma, action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
+    return ActionAttribute(action_lemma=action_lemma, action=" ".join(action), other=others,
+                           auxiliary=" ".join(auxiliary))
 
-def _get_by_location(location):
-    # TODO: call the DB containing countries
-    return []
+
+def _get_location_id(location):
+    result = []
+    for region, id in REGIONS.items():
+        region_low_list = [x.strip() for x in region.lower().split('&')]
+        if len(region_low_list) == 1:
+            region_low_list = region_low_list[0]
+        location_low = location.lower()
+        if location_low in region_low_list:
+            result.append(id)
+    if not result:
+        result.append(REGIONS[DEFAULT_REGION])
+    return result
+
+
+def _get_by_location(parent_location, target_type):
+    parent_location_id = _get_location_id(parent_location)
+    query = ("SELECT locations.name\n"
+             "FROM locations\n"
+             "INNER JOIN location_relations\n"
+             "ON locations.id=location_relations.region_id\n"
+             "WHERE parent_region_id IN %s\n"
+             "AND type=%s")
+    conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
+    cur = conn.cursor()
+    cur.execute(query, (tuple(parent_location_id), target_type))
+    res = [x[0] for x in cur.fetchall()]
+    print(res)
+
+    return res
 
 
 def get_attribute_location_spacy(doc):
@@ -153,16 +253,17 @@ def get_attribute_location_spacy(doc):
     country_candidates = []
     city_exceptions = []
     city_candidates = []
-    locations = [] # better to say "regions" -- continents and administrative
+    locations = []  # better to say "regions" -- continents and administrative
 
     geolocator = Nominatim()
 
     for ne in doc.ents:
-        if ne.label_ not in ['GPE', 'LOC']:
+        if ne.label_ not in ['GPE', 'LOC', 'ORG']:
             continue
 
-        if ne.label_ is 'LOC':
-            gpe_list = _get_by_location(ne.orth_)
+        if ne.label_ == 'LOC' or ne.label_ == 'ORG':
+            # geocoder = geolocator.geocode(ne.orth_)
+            gpe_list = _get_by_location(ne.orth_, RegionType['COUNTRY'])
             if ne.root.lower_ in NEGATIVES:
                 country_exceptions.extend(gpe_list)
             else:
@@ -175,7 +276,8 @@ def get_attribute_location_spacy(doc):
         #           or a country (type='administrative' & label='GPE')
         exceptions = []
         candidates = []
-        type = geolocator.geocode(ne.orth_).raw['type']
+        geocoder = geolocator.geocode(ne.orth_)
+        type = geocoder.raw['type']
         if type == 'city':
             exceptions = city_exceptions
             candidates = city_candidates
@@ -184,7 +286,8 @@ def get_attribute_location_spacy(doc):
             candidates = country_candidates
         else:
             print('TYPE:')
-            print(type)
+            print('Spacy type: ', ne.label_)
+            print('Nominatim type: ', type)
             print('city')
             print('administrative')
         # although we separate the results, the processing is similar for both
@@ -195,7 +298,7 @@ def get_attribute_location_spacy(doc):
 
     country_list = [x for x in country_candidates if x not in country_exceptions]
     city_list = [x for x in city_candidates if x not in city_exceptions]
-    result = LocationAttribute(locations=locations, countries=country_list, cities = city_list)
+    result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
     return result
 
 
@@ -251,7 +354,7 @@ def get_attribute_time_spacy(doc, question):
         if ent.label_ == "DATE":
             times.append(ent)
 
-#    from_data = None
+        #    from_data = None
     propositions = []
     global from_data;
     from_data = None
@@ -259,7 +362,7 @@ def get_attribute_time_spacy(doc, question):
         if "ago" in time.orth_:
             cur_year = date.today().year
             count_years = find_number(time.orth_)
-            return TimeAttribute(cur_year - count_years, cur_year - count_years, ["in"]                                    )
+            return TimeAttribute(cur_year - count_years, cur_year - count_years, ["in"])
         if "between" in time.orth_:
             part1 = time.orth_.split("and")[0]
             part2 = time.orth_.split("and")[1]

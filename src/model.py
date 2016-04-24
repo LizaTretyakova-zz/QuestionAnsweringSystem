@@ -85,11 +85,11 @@ class Attributes:
 
     def print(self):
         print(self.__dict__)
-        # print("Location: ", end='')
-        # print("location = ", end='')
-        # print(self.location.locations, end='')
-        # print(" countries = ", end='')
-        # print(self.location.countries, end='')
-        # print(" cities = ", end='')
-        # print(self.location.cities)
+        print("Location: ", end='')
+        print("location = ", end='')
+        print(self.location.locations, end='')
+        print(" countries = ", end='')
+        print(self.location.countries, end='')
+        print(" cities = ", end='')
+        print(self.location.cities)
 

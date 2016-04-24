@@ -13,6 +13,13 @@ def process_question(question):
 
 if __name__ == "__main__":
     questions = [
+        "How many downloads were made from Asia in 2015?",
+        "How many customers bought PyCharm in European Union 2 years ago?",
+        "How many times PyCharm was downloaded from North America?",
+        "How many PyCharm downloads were made from Tirol?",
+        "How many PyCharm downloads were made from Siberia?",
+        "How many PyCharm downloads were made from Bavaria?",
+
         "how many downloads were there in Russia?",
         "how many downloads were there in 2015?",
         "how many downloads were in 2016?",
