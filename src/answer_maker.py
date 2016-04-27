@@ -1,6 +1,6 @@
 from model import AnswerType, QuestionType
 from attributes import TYPES, PLURAL
-from database_wrappers import DownloadsWrapper
+from downloads_wrapper import DownloadsWrapper
 
 past_verbs = ["was", "were"]
 present_verbs = ["is", "ara"]
@@ -52,7 +52,7 @@ def get_answer(query, answer):
     else:
         countries = None
 
-    if query.attributes.action.auxiliary is None or query.attributes.action.auxiliary == "":
+    if not query.attributes.action.auxiliary:
         verb = query.attributes.action.action
     else:
         verb = query.attributes.action.auxiliary

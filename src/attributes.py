@@ -8,7 +8,7 @@ from spacy.parts_of_speech import VERB
 from datetime import date
 #from geopy.geocoders import Nominatim
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
-from database_wrappers import USER, PASSWORD
+from downloads_wrapper import USER, PASSWORD
 import nltk, re
 
 
@@ -180,13 +180,17 @@ TYPES = {
     }
 }
 
-nlp = spacy.en.English()
+#nlp = spacy.en.English()
 
-
-def parse(question):  # returns a list of question's attributes
+def parse(question:str)->Question:  # returns a list of question's attributes
     # question is a string
     # doc is spacy-parsed question
-    doc = nlp(question)
+    try:
+        parse.nlp
+    except AttributeError:
+        parse.nlp = spacy.en.English()
+
+    doc = parse.nlp(question)
     result = Attributes()
     result.location = get_attribute_location_spacy(doc)
     result.named_entity = get_attribute_named_entity(question)
@@ -200,7 +204,8 @@ def parse(question):  # returns a list of question's attributes
         attributes=result
     )
 
-def get_attribute_action(doc):
+
+def get_attribute_action(doc)->list:
     action_lemma = None
     action = []
     others = []
@@ -356,11 +361,6 @@ def get_attribute_time_spacy(doc, question):
         if ent.label_ == "DATE":
             times.append(ent)
 
-    global prepositions
-    global from_date
-    global to_date
-    global except_date
-    global except_prepositions
     except_prepositions = []
     prepositions = []
     except_date = []
@@ -400,7 +400,8 @@ def get_attribute_time_spacy(doc, question):
                 part2 = time.orth_.split(prepositions[1])[1]
                 from_date = find_number(part1)
                 to_date = find_number(part2)
-            from_date = find_number(time.orth_)
+            else:
+                from_date = find_number(time.orth_)
         elif preposition.orth_ == "to" or preposition.orth_ == "till" or preposition.orth_ == "until":
             prepositions.append(preposition.orth_)
             to_date = find_number(time.orth_)
@@ -421,7 +422,23 @@ def get_attribute_time_spacy(doc, question):
             except_prepositions.append(preposition.orth_)
 
     print(from_date, to_date, prepositions, except_date, except_prepositions)
+    if from_date is None and to_date is None:
+        for token in doc:
+            if token.pos_ == "NUM" and is_child(token, "in"):
+                print("NUMS: ", token)
     return TimeAttribute(from_date, to_date, prepositions, except_date, except_prepositions)
+
+
+def is_child(token, str):
+    while token.orth_ != str and token.head is not token:
+        if token.dep_ != "conj" and token.head.orth_ != str:
+            return False
+        token = token.head
+    if token.orth_ == str:
+        return True
+    else:
+        return False
+
 
 def find_number(text):
     search_result = re.search('\d+', text)

@@ -41,6 +41,18 @@ class BaseAttribute:
         pass
 
 
+class Segment(object):
+    def __init__(self, start=None, end=None):
+        self.start = start
+        self.end = end
+
+    def __cmp__(self, other):
+        return self.start < other.start
+
+    def __repr__(self):
+        return self.__dict__.__repr__()
+
+
 class TimeAttribute(BaseAttribute):
     type = "time"
 
@@ -51,10 +63,45 @@ class TimeAttribute(BaseAttribute):
         self.end = end
         self.proposition = proposition
         self.except_date = except_date
+        self.segment_list = []
         self.except_prepositions = except_prepositions
+        self.except_segment_list = []
+        self.real_segments = []
+
+    def add_segment(self, start=None, end=None):
+        self.segment_list.append(Segment(start=start, end=end))
+
+    def add_except_segment(self, start=None, end=None):
+        self.except_segment_list.append(Segment(start=start, end=end))
+
+    def eval_real_segments(self):
+        self.segment_list.sort(key=lambda x: x.start)
+        self.except_segment_list.sort(key=lambda x: x.start)
+        cur_except_segment = 0
+        except_segment = self.except_segment_list[cur_except_segment]
+
+        for segment in self.segment_list:
+            while cur_except_segment < len(self.except_segment_list) and \
+                            except_segment.end < segment.start:
+                except_segment = self.except_segment_list[cur_except_segment]
+                cur_except_segment += 1
+            while cur_except_segment < len(self.except_segment_list) and \
+                            except_segment.start < segment.end:
+                if segment.end < except_segment.start or segment.start > except_segment.end:
+                    self.real_segments.append(Segment(segment.start, segment.end))
+                    continue
+                if except_segment.start <= segment.start and except_segment.end >= segment.end:
+                    continue
+                if segment.start < except_segment.start:
+                    self.real_segments.append(Segment(segment.start, except_segment.start))
+                if segment.end > except_segment.end:
+                    self.real_segments.append(Segment(except_segment.end, segment.end))
+                except_segment = self.except_segment_list[cur_except_segment]
+                cur_except_segment += 1
+        print(self.real_segments)
 
     def __repr__(self):
-        return (self.__dict__).__repr__()
+        return self.__dict__.__repr__()
 
 
 class LocationAttribute(BaseAttribute):
@@ -67,13 +114,13 @@ class LocationAttribute(BaseAttribute):
         self.cities = cities
 
     def __repr__(self):
-        return (self.__dict__).__repr__()
+        return self.__dict__.__repr__()
 
 
 class ActionAttribute(BaseAttribute):
     type = "action"
 
-    def __init__(self, action_lemma=None, action=None, other=None, auxiliary= None):
+    def __init__(self, action_lemma=None, action=None, other=None, auxiliary=None):
         super().__init__()
         self.action_lemma = action_lemma
         self.action = action
@@ -81,9 +128,7 @@ class ActionAttribute(BaseAttribute):
         self.auxiliary = auxiliary
 
     def __repr__(self):
-        return (self.__dict__).__repr__()
-
-
+        return self.__dict__.__repr__()
 
 class Attributes:
     def __init__(self):

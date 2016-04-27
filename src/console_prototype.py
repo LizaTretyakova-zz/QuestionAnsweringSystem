@@ -2,7 +2,7 @@
 
 import psycopg2
 from attributes import parse
-from model import Question
+from model import Question, TimeAttribute
 from dispatcher import Dispatcher
 
 
@@ -54,14 +54,24 @@ if __name__ == "__main__":
         "When was the last PyCharm download?",
         "How many customers have been since 2000?",
         "How many downloads were from 2000 to 2016 except 2015?",
-        "How many downloads were till 2016 without 2015?"
+        "How many downloads were till 2016 without 2015?",
         "When have xamarin been downloaded?",
         "How many downloads of PyCharm were made from Munich in 2014?",
         "How many different products are downloaded from Saint Petersburg?", # potentially okay question
-        "how many downloads were there in Munich and Saint Petersburg?"
+        "how many downloads were there in Munich and Saint Petersburg?",
+        "How many customers were there in 2000 and 2011?"
     ]
 
     for question in questions:
         print(question)
         print(process_question(question))
         print("***")
+
+#attribute = TimeAttribute()
+#attribute.add_segment(500, 505)
+#attribute.add_segment(10, 200)
+#attribute.add_segment(8, 205)
+#attribute.add_except_segment(9, 20)
+#attribute.add_except_segment(40, 50)
+#attribute.add_except_segment(199, 210)
+#attribute.eval_real_segments()
