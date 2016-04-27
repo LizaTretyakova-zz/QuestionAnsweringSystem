@@ -1,11 +1,83 @@
 #!/usr/bin/env python3
+from enum import Enum
+
+import psycopg2
 import spacy.en
+from geopy import Nominatim
 from spacy.parts_of_speech import VERB
 from datetime import date
-
-from enum import Enum
+#from geopy.geocoders import Nominatim
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
-import nltk, re, pprint
+from database_wrappers import USER, PASSWORD
+import nltk, re
+
+
+RegionType = {
+    'COUNTRY': 0,
+    'CITY': 1
+}
+
+
+DEFAULT_REGION = 'World'
+
+REGIONS = {
+    'World': 29489,
+    'Arab World': 29490,
+    'Central Europe and the Baltics': 29491,
+    'Caribbean small states': 29492,
+    'East Asia & Pacific': 29493,
+    'Europe & Central Asia': 29494,
+    'Euro area': 29495,
+    'European Union': 29496,
+    'Fragile and conflict affected situations': 29497,
+    'Latin America & Caribbean': 29498,
+    'Least developed countries: UN classification': 29499,
+    'Middle East & North Africa': 29500,
+    'North America': 29501,
+    'OECD': 29502,
+    # 'OECD members': 29502,
+    'Other small states': 29503,
+    'Pacific island small states': 29504,
+    'South Asia': 29505,
+    'Sub-Saharan Africa': 29506,
+    'Small states': 29507,
+    'St. Martin (French part)': 29508,
+    'Sint Maarten (Dutch part)': 29509,
+    'South Sudan': 29510,
+    'British Overseas Territories': 29512,
+    'Realm of New Zealand': 29513,
+    'APAC': 29514,
+    'EMEA': 29516
+    # 'Europe, the Middle East and Africa (EMEA)': 29516
+}
+
+# REGIONS = [
+#     'Arab World',
+#     'Central Europe and the Baltics',
+#     'Caribbean small states',
+#     'East Asia & Pacific',
+#     'Europe & Central Asia',
+#     'Euro area',
+#     'European Union',
+#     'Fragile and conflict affected situations',
+#     'Latin America & Caribbean',
+#     'Least developed countries: UN classification',
+#     'Middle East & North Africa',
+#     'North America',
+#     'OECD members',
+#     'Other small states',
+#     'Pacific island small states',
+#     'South Asia',
+#     'Sub-Saharan Africa',
+#     'Small states',
+#     'St. Martin (French part)',
+#     'Sint Maarten (Dutch part)',
+#     'South Sudan',
+#     'British Overseas Territories',
+#     'Realm of New Zealand',
+#     'APAC',
+#     'Europe, the Middle East and Africa (EMEA)'
+# ]
 
 ATTRIBUTES_LIST = [
     "country",
@@ -123,45 +195,19 @@ def parse(question):  # returns a list of question's attributes
     result.product = get_attribute_product(question)
     return Question(
         question=question,
-        question_type=get_question_type(question, get_attribute_action_lemma(doc)),
+        question_type=get_question_type(question, result.action),
         answer_type=get_answer_type(question),
         attributes=result
     )
 
-
-def get_attribute_action_without_synonims(question):
-    main_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["action"], question)
-    extra_action = get_attribute_by_list_without_sinonyms(ATTRIBUTES["extra action"], question)
-    if extra_action is None:
-        return main_action
-    elif main_action is None:
-        return extra_action
-    else:
-        return extra_action + " " + main_action
-
-
-def get_attribute_by_list_without_sinonyms(attr_list, question):
-    for word in attr_list:
-        if word in question:
-            return word
-
-def get_attribute_action_lemma(doc):
-    action = None
-    others = []
-    for token in doc:
-        if token.head is token:
-            action = token.lemma_
-        elif token.pos is VERB:
-            others.append(token.lemma_)
-    return ActionAttribute(action=action, other=others)
-
-
 def get_attribute_action(doc):
+    action_lemma = None
     action = []
     others = []
     auxiliary = []
     for token in doc:
         if token.head is token:
+            action_lemma = token.lemma_
             action = [token.orth_]
         elif token.pos is VERB and (token.dep_ == "aux" or token.dep_ == "auxpass"):
             auxiliary.append(token.orth_)
@@ -172,31 +218,89 @@ def get_attribute_action(doc):
         auxiliary = []
     return ActionAttribute(action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
 
-def _get_by_location(location):
-    # TODO: call the DB containing countries
-    return []
+
+def _get_location_id(location):
+    result = []
+    for region, id in REGIONS.items():
+        region_low_list = [x.strip() for x in region.lower().split('&')]
+        if len(region_low_list) == 1:
+            region_low_list = region_low_list[0]
+        location_low = location.lower()
+        if location_low in region_low_list:
+            result.append(id)
+    if not result:
+        result.append(REGIONS[DEFAULT_REGION])
+    return result
+
+
+def _get_by_location(parent_location, target_type):
+    parent_location_id = _get_location_id(parent_location)
+    query = ("SELECT locations.name\n"
+             "FROM locations\n"
+             "INNER JOIN location_relations\n"
+             "ON locations.id=location_relations.region_id\n"
+             "WHERE parent_region_id IN %s\n"
+             "AND type=%s")
+    conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
+    cur = conn.cursor()
+    cur.execute(query, (tuple(parent_location_id), target_type))
+    res = [x[0] for x in cur.fetchall()]
+    print(res)
+
+    return res
 
 
 def get_attribute_location_spacy(doc):
-    exceptions = []
-    candidates = []
-    locations = []
-    # TODO: to use feature-extraction to determine negative/positive
+    country_exceptions = []
+    country_candidates = []
+    city_exceptions = []
+    city_candidates = []
+    locations = []  # better to say "regions" -- continents and administrative
+
+    geolocator = Nominatim()
+
     for ne in doc.ents:
-        if ne.label_ == 'GPE':
+        if ne.label_ not in ['GPE', 'LOC', 'ORG']:
+            continue
+
+        if ne.label_ == 'LOC' or ne.label_ == 'ORG':
+            # geocoder = geolocator.geocode(ne.orth_)
+            gpe_list = _get_by_location(ne.orth_, RegionType['COUNTRY'])
             if ne.root.lower_ in NEGATIVES:
-                exceptions.append(ne.orth_)
-            else:
-                candidates.append(ne.orth_)
-        elif ne.label_ == 'LOC':
-            gpe_list = _get_by_location(ne.orth_)
-            if ne.root.lower_ in NEGATIVES:
-                exceptions.extend(gpe_list)
+                country_exceptions.extend(gpe_list)
             else:
                 locations.append(ne.orth_)
-                candidates.extend(gpe_list)
-    country_list = [x for x in candidates if x not in exceptions]
-    result = LocationAttribute(loc_list=locations, countries=country_list)
+                country_candidates.extend(gpe_list)
+            continue
+
+        # otherwise
+        # it is either a city (type='city' & label='GPE')
+        #           or a country (type='administrative' & label='GPE')
+        exceptions = []
+        candidates = []
+        geocoder = geolocator.geocode(ne.orth_)
+        type = geocoder.raw['type']
+        if type == 'city':
+            exceptions = city_exceptions
+            candidates = city_candidates
+        elif type == 'administrative':
+            exceptions = country_exceptions
+            candidates = country_candidates
+        else:
+            print('TYPE:')
+            print('Spacy type: ', ne.label_)
+            print('Nominatim type: ', type)
+            print('city')
+            print('administrative')
+        # although we separate the results, the processing is similar for both
+        if ne.root.lower_ in NEGATIVES:
+            exceptions.append(ne.orth_)
+        else:
+            candidates.append(ne.orth_)
+
+    country_list = [x for x in country_candidates if x not in country_exceptions]
+    city_list = [x for x in city_candidates if x not in city_exceptions]
+    result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
     return result
 
 
@@ -227,7 +331,7 @@ def get_attribute_location_simple(question):
     places = []
     for gpe in gpe_list:
         places.append(gpe[0])
-    return LocationAttribute(loc_list=gpe_list, countries=places)
+    return LocationAttribute(locations=gpe_list, countries=places)
 
 
 def get_attribute_product(question):
@@ -252,7 +356,6 @@ def get_attribute_time_spacy(doc, question):
         if ent.label_ == "DATE":
             times.append(ent)
 
-#    from_data = None
     global prepositions
     global from_date
     global to_date
@@ -263,6 +366,7 @@ def get_attribute_time_spacy(doc, question):
     except_date = []
     from_date = None
     to_date = None
+
     for time in times:
         if "ago" in time.orth_:
             cur_year = date.today().year
@@ -292,11 +396,8 @@ def get_attribute_time_spacy(doc, question):
             elif "till" in time.orth_:
                 prepositions.append("till")
             if len(prepositions) > 1:
-#                print(prepositions)
                 part1 = time.orth_.split(prepositions[1])[0]
                 part2 = time.orth_.split(prepositions[1])[1]
-#                print(part1)
-#                print(part2)
                 from_date = find_number(part1)
                 to_date = find_number(part2)
             from_date = find_number(time.orth_)
@@ -321,7 +422,6 @@ def get_attribute_time_spacy(doc, question):
 
     print(from_date, to_date, prepositions, except_date, except_prepositions)
     return TimeAttribute(from_date, to_date, prepositions, except_date, except_prepositions)
-
 
 def find_number(text):
     search_result = re.search('\d+', text)
@@ -351,8 +451,8 @@ def get_question_type(question, action):
 
 def get_question_type_by_action(action):
     q_words = TYPES["action_words"]
-    if action.main_action in q_words.keys():
-        return q_words[action.main_action]
+    if action.action_lemma in q_words.keys():
+        return q_words[action.action_lemma]
 
 
 def get_answer_type(question):

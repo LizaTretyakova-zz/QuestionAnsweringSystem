@@ -13,6 +13,13 @@ def process_question(question):
 
 if __name__ == "__main__":
     questions = [
+        "How many downloads were made from Asia in 2015?",
+        "How many customers bought PyCharm in European Union 2 years ago?",
+        "How many times PyCharm was downloaded from North America?",
+        "How many PyCharm downloads were made from Tirol?",
+        "How many PyCharm downloads were made from Siberia?",
+        "How many PyCharm downloads were made from Bavaria?",
+
         "how many downloads were there in Russia?",
         "how many downloads were there in 2015?",
         "how many downloads were in 2016?",
@@ -29,6 +36,7 @@ if __name__ == "__main__":
         "How many downloads have been since 2015?",
         "how many downloads were 1 year ago?",
         "How many customers were since 2015?",
+
         "dkfsdlkgjhslkrghkrgjhlkj dkfjhgdlsfkjhg dfgjhkshg fgdsklhg?",
         "How many downloads of PyCharm were made from Russia in 2014?",
         "How many different products are downloaded from Russia?", # potentially okay question
@@ -47,6 +55,10 @@ if __name__ == "__main__":
         "How many customers have been since 2000?",
         "How many downloads were from 2000 to 2016 except 2015?",
         "How many downloads were till 2016 without 2015?"
+        "When have xamarin been downloaded?",
+        "How many downloads of PyCharm were made from Munich in 2014?",
+        "How many different products are downloaded from Saint Petersburg?", # potentially okay question
+        "how many downloads were there in Munich and Saint Petersburg?"
     ]
 
     for question in questions:
