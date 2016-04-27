@@ -6,12 +6,15 @@ from model import BaseAttribute
 
 class DownloadsWrapper(BaseWrapper):
     DEFAULT_VALUE = [True]
+    NEGATIVE_VALUE = [False]
     DEFAULT_QUERY_VALUE = "%s"
 
     def __init__(self, question):
         super().__init__()
         self.question = question  # COUNTRY, product, DOWNLOAD_DATE, amount
         self.country = self.DEFAULT_VALUE
+        # self.location = self.DEFAULT_VALUE
+        # self.city = self.DEFAULT_VALUE
         self.time = self.DEFAULT_VALUE
         self.arguments = None
         self.query = None
@@ -24,8 +27,14 @@ class DownloadsWrapper(BaseWrapper):
         for attr_name, attr in self.question.attributes.items():
             if not isinstance(attr, BaseAttribute):
                 pass
-            elif attr.type == "location" and attr.countries is not None:
-                if attr.countries:
+            elif attr.type == "location": # and attr.countries is not None:
+                # if attr.locations:
+                #     self.location = attr.locations
+                # if attr.cities:
+                #     self.city = attr.cities
+                if not attr.countries:
+                    self.country = self.NEGATIVE_VALUE
+                else:
                     self.country = attr.countries
                     self.query_country = "country in %s"
                     # self.query_country = "(country = %s " + "or country = %s " * (len(attr.countries) - 1) + ") "
@@ -63,10 +72,14 @@ class DownloadsWrapper(BaseWrapper):
             message = """Sorry, we currently do not have any information"""
             if self.country is not self.DEFAULT_VALUE or self.time is not self.DEFAULT_VALUE:
                 message += """ about """
-                if self.country is not self.DEFAULT_VALUE and self.time is not self.DEFAULT_VALUE:
+                if self.country is not self.DEFAULT_VALUE \
+                        and self.country is not self.NEGATIVE_VALUE \
+                        and self.time is not self.DEFAULT_VALUE:
                     message += ", ".join(self.country) + """ in specified time"""
-                elif self.country is not self.DEFAULT_VALUE:
+                elif self.country is not self.DEFAULT_VALUE and self.country is not self.NEGATIVE_VALUE:
                     message += ", ".join(self.country)
+                elif self.country is not self.DEFAULT_VALUE:
+                    message += """specified location"""
                 else:
                     message += """specified time"""
             message += """. Try to change the country or time restrictions."""

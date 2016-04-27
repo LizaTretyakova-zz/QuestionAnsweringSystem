@@ -19,6 +19,7 @@ RegionType = {
 
 
 DEFAULT_REGION = 'World'
+INVALID_REGION_ID = 0
 
 REGIONS = {
     'World': 29489,
@@ -234,7 +235,7 @@ def _get_location_id(location):
         if location_low in region_low_list:
             result.append(id)
     if not result:
-        result.append(REGIONS[DEFAULT_REGION])
+        result.append(INVALID_REGION_ID)
     return result
 
 
@@ -265,7 +266,11 @@ def get_attribute_location_spacy(doc):
     geolocator = Nominatim()
 
     for ne in doc.ents:
-        if ne.label_ not in ['GPE', 'LOC', 'ORG']:
+        exceptions = []
+        candidates = []
+        geocoder = geolocator.geocode(ne.orth_)
+
+        if ne.label_ not in ['GPE', 'LOC', 'ORG'] or not geocoder:
             continue
 
         if ne.label_ == 'LOC' or ne.label_ == 'ORG':
@@ -281,9 +286,6 @@ def get_attribute_location_spacy(doc):
         # otherwise
         # it is either a city (type='city' & label='GPE')
         #           or a country (type='administrative' & label='GPE')
-        exceptions = []
-        candidates = []
-        geocoder = geolocator.geocode(ne.orth_)
         type = geocoder.raw['type']
         if type == 'city':
             exceptions = city_exceptions
