@@ -44,11 +44,17 @@ class BaseAttribute:
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start=None, end=None, proposition=None):
+    def __init__(self, start=None, end=None, proposition=None, except_date=None,
+                 except_prepositions=None):
         super().__init__()
         self.start = start
         self.end = end
         self.proposition = proposition
+        self.except_date = except_date
+        self.except_prepositions = except_prepositions
+
+    def __repr__(self):
+        return (self.__dict__).__repr__()
 
 
 class LocationAttribute(BaseAttribute):
@@ -60,6 +66,9 @@ class LocationAttribute(BaseAttribute):
         self.countries = countries
         self.cities = cities
 
+    def __repr__(self):
+        return (self.__dict__).__repr__()
+
 
 class ActionAttribute(BaseAttribute):
     type = "action"
@@ -70,6 +79,10 @@ class ActionAttribute(BaseAttribute):
         self.action = action
         self.other = other
         self.auxiliary = auxiliary
+
+    def __repr__(self):
+        return (self.__dict__).__repr__()
+
 
 
 class Attributes:
@@ -83,7 +96,10 @@ class Attributes:
     def items(self):
         return (self.__dict__).items()
 
-    def print(self):
+    def __repr__(self):
+        return (self.__dict__).__repr__()
+
+    def printf(self):
         print(self.__dict__)
         print("Location: ", end='')
         print("location = ", end='')
@@ -92,4 +108,3 @@ class Attributes:
         print(self.location.countries, end='')
         print(" cities = ", end='')
         print(self.location.cities)
-

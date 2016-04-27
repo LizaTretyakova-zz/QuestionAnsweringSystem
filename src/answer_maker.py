@@ -47,7 +47,6 @@ def create_time_part(time):
 
 
 def get_answer(query, answer):
-    verb = None
     if query.attributes.location is not None:
         countries = query.attributes.location.countries
     else:
@@ -62,7 +61,9 @@ def get_answer(query, answer):
             return ("There" + xstr(plural(verb), " ") + " " + str(answer) + " downloads" + country_str(countries) +
                     create_time_part(query.attributes.time))
         else:
-            return "Clients" + xstr(verb, " ") + " it " + str(answer) + country_str(countries) + " times"
+            product = query.attributes.product
+            return "Clients" + xstr(verb, " ") + " " + product + " " + str(answer) + \
+                   country_str(countries) + " times"
     if query.question_type is QuestionType.CUSTOMERS:
         return ("There" + xstr(plural(verb), " ") + " " + str(answer) + " customers" + country_str(countries) +
                 create_time_part(query.attributes.time))

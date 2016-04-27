@@ -3,9 +3,10 @@ from enum import Enum
 
 import psycopg2
 import spacy.en
+from geopy import Nominatim
 from spacy.parts_of_speech import VERB
 from datetime import date
-from geopy.geocoders import Nominatim
+#from geopy.geocoders import Nominatim
 from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
 from database_wrappers import USER, PASSWORD
 import nltk, re
@@ -200,7 +201,6 @@ def parse(question):  # returns a list of question's attributes
         attributes=result
     )
 
-
 def get_attribute_action(doc):
     action_lemma = None
     action = []
@@ -214,8 +214,10 @@ def get_attribute_action(doc):
             auxiliary.append(token.orth_)
         elif token.pos is VERB:
             others.append(token.orth_)
-    return ActionAttribute(action_lemma=action_lemma, action=" ".join(action), other=others,
-                           auxiliary=" ".join(auxiliary))
+    if action == ["been"]:
+        action = auxiliary + action
+        auxiliary = []
+    return ActionAttribute(action=" ".join(action), other=others, auxiliary=" ".join(auxiliary))
 
 
 def _get_location_id(location):
@@ -356,45 +358,72 @@ def get_attribute_time_spacy(doc, question):
         if ent.label_ == "DATE":
             times.append(ent)
 
-        #    from_data = None
-    propositions = []
-    global from_data;
-    from_data = None
+    global prepositions
+    global from_date
+    global to_date
+    global except_date
+    global except_prepositions
+    except_prepositions = []
+    prepositions = []
+    except_date = []
+    from_date = None
+    to_date = None
+
     for time in times:
         if "ago" in time.orth_:
             cur_year = date.today().year
             count_years = find_number(time.orth_)
-            return TimeAttribute(cur_year - count_years, cur_year - count_years, ["in"])
+            from_date = cur_year - count_years
+            to_date = cur_year - count_years
+            prepositions = ["in"]
+            break
         if "between" in time.orth_:
             part1 = time.orth_.split("and")[0]
             part2 = time.orth_.split("and")[1]
-            return TimeAttribute(find_number(part1), find_number(part2), ["between"])
-        proposition = time.root.head
-        if proposition.orth_ == "since":
-            return TimeAttribute(time.orth_, None, ["since"])
-        elif proposition.orth_ == "from":
-            propositions.append("from")
+            from_date = find_number(part1)
+            to_date = find_number(part2)
+            prepositions = ["between"]
+            continue
+        preposition = time.root.head
+        if preposition.orth_ == "since":
+            from_date = find_number(time.orth_)
+            to_date = None
+            prepositions = ["since"]
+        elif preposition.orth_ == "from":
+            prepositions = ["from"]
             if "to" in time.orth_:
-                propositions.append("to")
+                prepositions.append("to")
             elif "until" in time.orth_:
-                propositions.append("until")
+                prepositions.append("until")
             elif "till" in time.orth_:
-                propositions.append("till")
-            if len(propositions) > 1:
-                part1 = time.orth_.split(propositions[1])[0]
-                part2 = time.orth_.split(propositions[1])[1]
-                return TimeAttribute(find_number(part1), find_number(part2), propositions)
-            from_data = find_number(time.orth_)
-        elif proposition.orth_ == "to" or proposition.orth_ == "till" or proposition.orth_ == "until":
-            proposition.append(proposition.orth_)
-            return TimeAttribute(from_data, find_number(time.orth_), propositions)
-        elif proposition.orth_ == "after" or proposition.orth_ == "by":
-            return TimeAttribute(find_number(time.orth_), None, ["after"])
-        elif proposition.orth_ == "before":
-            return TimeAttribute(None, find_number(time.orth_), ["before"])
-        return TimeAttribute(find_number(time.orth_), find_number(time.orth_), ["in"])
-    return TimeAttribute(from_data, None, propositions)
+                prepositions.append("till")
+            if len(prepositions) > 1:
+                part1 = time.orth_.split(prepositions[1])[0]
+                part2 = time.orth_.split(prepositions[1])[1]
+                from_date = find_number(part1)
+                to_date = find_number(part2)
+            from_date = find_number(time.orth_)
+        elif preposition.orth_ == "to" or preposition.orth_ == "till" or preposition.orth_ == "until":
+            prepositions.append(preposition.orth_)
+            to_date = find_number(time.orth_)
+        elif preposition.orth_ == "after" or preposition.orth_ == "by":
+            from_date = find_number(time.orth_)
+            to_date = None
+            prepositions = ["after"]
+        elif preposition.orth_ == "before":
+            from_date = None
+            to_date = find_number(time.orth_)
+            prepositions = ["before"]
+        elif preposition.orth_ == "in" or preposition.orth_ == "within":
+            from_date = find_number(time.orth_)
+            to_date = find_number(time.orth_)
+            prepositions = [preposition.orth_]
+        elif preposition.orth_ == "except":
+            except_date.append(find_number(time.orth_))
+            except_prepositions.append(preposition.orth_)
 
+    print(from_date, to_date, prepositions, except_date, except_prepositions)
+    return TimeAttribute(from_date, to_date, prepositions, except_date, except_prepositions)
 
 def find_number(text):
     search_result = re.search('\d+', text)

@@ -1,3 +1,10 @@
+create table locations (
+	id integer primary key,
+	iso text,
+	name text,
+	type integer
+);
+
 insert into locations(id, iso, name, type) values								
 (	29489	,'WLD','World',	100	),
 (	29490	,'ARB','Arab World',	2	),

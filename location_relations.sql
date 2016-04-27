@@ -1,3 +1,8 @@
+create table location_relations (
+	region_id integer,
+	parent_region_id integer
+);
+
 insert into location_relations(region_id, parent_region_id) values
 (	249	,	1	),
 (	250	,	1	),
