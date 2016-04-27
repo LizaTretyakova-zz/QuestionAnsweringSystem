@@ -19,7 +19,7 @@ class Dispatcher(object):
     def find_answer(meta_data):
         if meta_data is None:
             return None
-        meta_data.attributes.print()
+        print(meta_data.attributes)
         if meta_data.question_type is QuestionType.CUSTOMERS:
             return get_answer(meta_data, WrapperMoneyDatabase.ask(meta_data))
         if meta_data.question_type is QuestionType.DOWNLOADS:

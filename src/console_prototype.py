@@ -43,7 +43,10 @@ if __name__ == "__main__":
         "What was the country of the latest PyCharm download?",
         "What was the time of the first PyCharm download?",
         "What number of countries is PyCharm downloaded from?",
-        "When was the last PyCharm download?"
+        "When was the last PyCharm download?",
+        "How many customers have been since 2000?",
+        "How many downloads were from 2000 to 2016 except 2015?",
+        "How many downloads were till 2016 without 2015?"
     ]
 
     for question in questions:

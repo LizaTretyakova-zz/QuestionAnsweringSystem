@@ -44,11 +44,17 @@ class BaseAttribute:
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start=None, end=None, proposition=None):
+    def __init__(self, start=None, end=None, proposition=None, except_date=None,
+                 except_prepositions=None):
         super().__init__()
         self.start = start
         self.end = end
         self.proposition = proposition
+        self.except_date = except_date
+        self.except_prepositions = except_prepositions
+
+    def __repr__(self):
+        return (self.__dict__).__repr__()
 
 
 class LocationAttribute(BaseAttribute):
@@ -59,6 +65,9 @@ class LocationAttribute(BaseAttribute):
         self.location = loc_list
         self.countries = countries
         self.city = city
+
+    def __repr__(self):
+        return (self.__dict__).__repr__()
 
 
 class ActionAttribute(BaseAttribute):
@@ -82,5 +91,5 @@ class Attributes:
     def items(self):
         return (self.__dict__).items()
 
-    def print(self):
-        print(self.__dict__)
+    def __repr__(self):
+        return (self.__dict__).__repr__()

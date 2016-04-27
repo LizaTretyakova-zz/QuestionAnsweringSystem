@@ -86,7 +86,8 @@ class WrapperMoneyDatabase(object):
         product = question.attributes.product
         data = question.attributes.time
         place = question.attributes.location
-#        print("money, ", answer_type, product, place, data, question_type)
+        #        print("money, ", answer_type, product, place, data, question_type)
+
         if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None
         try:
@@ -117,8 +118,14 @@ class WrapperMoneyDatabase(object):
             else:
                 year_end = int(data.end)
         rows = []
-        for country in place.countries:
+        if place is None or place.countries is None or len(place.countries) is 0:
+            country = None
             cur.execute(ask_phrase, [country, country, year_start, year_start, \
-                                    year_end, year_end, product, product])
+                                     year_end, year_end, product, product])
             rows += list(cur.fetchall()[0])
+        else:
+            for country in place.countries:
+                cur.execute(ask_phrase, [country, country, year_start, year_start, \
+                                         year_end, year_end, product, product])
+                rows += list(cur.fetchall()[0])
         return sum(rows)
