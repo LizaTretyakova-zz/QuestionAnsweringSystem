@@ -61,7 +61,7 @@ def get_answer(query, answer):
     else:
         countries = None
 
-    if query.attributes.action.auxiliary is None or query.attributes.action.auxiliary == "":
+    if not query.attributes.action.auxiliary:
         verb = query.attributes.action.action
     else:
         verb = query.attributes.action.auxiliary

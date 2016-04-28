@@ -1,6 +1,6 @@
 import psycopg2
 from geopy import Nominatim
-from database_wrappers import USER, PASSWORD
+from base_wrapper import USER, PASSWORD
 from model import LocationAttribute
 import nltk
 

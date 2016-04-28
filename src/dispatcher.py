@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-import itertools
 
 from answer_maker import get_answer
+from customers_wrapper import CustomersWrapper
+from downloads_wrapper import DownloadsWrapper
 from model import QuestionType
-from database_wrappers import WrapperMoneyDatabase, DownloadsWrapper
 
 
 def itertools_to_list(iter):
     return [item for item in iter]
 
+
 databases_ask_functions = {
-    WrapperMoneyDatabase.ask
+    CustomersWrapper.ask
 }
 
 
@@ -21,7 +22,8 @@ class Dispatcher(object):
             return None
         print(meta_data.attributes)
         if meta_data.question_type is QuestionType.CUSTOMERS:
-            return get_answer(meta_data, WrapperMoneyDatabase.ask(meta_data))
+            wrapper = CustomersWrapper()
+            return get_answer(meta_data, wrapper.ask(meta_data))
         if meta_data.question_type is QuestionType.DOWNLOADS:
             wrapper = DownloadsWrapper(meta_data)
             downloads_answer = wrapper.get()
@@ -29,4 +31,4 @@ class Dispatcher(object):
                 return get_answer(meta_data, downloads_answer["result"][0])
             else:
                 return (get_answer(meta_data, 0) + "\n" +
-                downloads_answer["message"])
+                        downloads_answer["message"])

@@ -2,7 +2,7 @@ from spacy.parts_of_speech import VERB
 from model import ActionAttribute
 
 
-def get_attribute_action(doc):
+def get_attribute_action(doc)->list:
     action_lemma = None
     action = []
     others = []

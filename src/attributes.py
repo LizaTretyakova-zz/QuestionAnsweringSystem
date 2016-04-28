@@ -9,8 +9,7 @@ from attributes_answer_type import get_answer_type
 from attributes_question_type import get_question_type
 from attributes_default_utils import get_attribute_product, get_attribute_named_entity
 
-
-def parse(question):  # returns a list of question's attributes
+def parse(question:str)->Question:  # returns a list of question's attributes
     # question is a string
     # doc is spacy-parsed question
 
