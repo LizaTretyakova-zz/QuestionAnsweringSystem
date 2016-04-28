@@ -1,37 +1,7 @@
-import psycopg2
 from geopy import Nominatim
-from base_wrapper import USER, PASSWORD
 from model import LocationAttribute
+import database_utils
 import nltk
-
-REGIONS = {
-    'World': 29489,
-    'Arab World': 29490,
-    'Central Europe and the Baltics': 29491,
-    'Caribbean small states': 29492,
-    'East Asia & Pacific': 29493,
-    'Europe & Central Asia': 29494,
-    'Euro area': 29495,
-    'European Union': 29496,
-    'Fragile and conflict affected situations': 29497,
-    'Latin America & Caribbean': 29498,
-    'Least developed countries: UN classification': 29499,
-    'Middle East & North Africa': 29500,
-    'North America': 29501,
-    'OECD': 29502,
-    'Other small states': 29503,
-    'Pacific island small states': 29504,
-    'South Asia': 29505,
-    'Sub-Saharan Africa': 29506,
-    'Small states': 29507,
-    'St. Martin (French part)': 29508,
-    'Sint Maarten (Dutch part)': 29509,
-    'South Sudan': 29510,
-    'British Overseas Territories': 29512,
-    'Realm of New Zealand': 29513,
-    'APAC': 29514,
-    'EMEA': 29516
-}
 
 
 NEGATIVES = [
@@ -48,42 +18,12 @@ RegionType = {
 }
 
 
-DEFAULT_REGION = 'World'
-INVALID_REGION_ID = 0
+def get_attribute_location_spacy(doc) -> LocationAttribute:
+    try:
+        get_attribute_location_spacy.location_wrapper
+    except AttributeError:
+        get_attribute_location_spacy.location_wrapper = database_utils.LocationWrapper()
 
-
-def _get_location_id(location):
-    result = []
-    for region, id in REGIONS.items():
-        region_low_list = [x.strip() for x in region.lower().split('&')]
-        if len(region_low_list) == 1:
-            region_low_list = region_low_list[0]
-        location_low = location.lower()
-        if location_low in region_low_list:
-            result.append(id)
-    if not result:
-        result.append(INVALID_REGION_ID)
-    return result
-
-
-def _get_by_location(parent_location, target_type):
-    parent_location_id = _get_location_id(parent_location)
-    query = ("SELECT locations.name\n"
-             "FROM locations\n"
-             "INNER JOIN location_relations\n"
-             "ON locations.id=location_relations.region_id\n"
-             "WHERE parent_region_id IN %s\n"
-             "AND type=%s")
-    conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
-    cur = conn.cursor()
-    cur.execute(query, (tuple(parent_location_id), target_type))
-    res = [x[0] for x in cur.fetchall()]
-    print(res)
-
-    return res
-
-
-def get_attribute_location_spacy(doc):
     country_exceptions = []
     country_candidates = []
     city_exceptions = []
@@ -102,7 +42,7 @@ def get_attribute_location_spacy(doc):
 
         if ne.label_ == 'LOC' or ne.label_ == 'ORG':
             # geocoder = geolocator.geocode(ne.orth_)
-            gpe_list = _get_by_location(ne.orth_, RegionType['COUNTRY'])
+            gpe_list = get_attribute_location_spacy.location_wrapper.get_by_location(ne.orth_, RegionType['COUNTRY'])
             if ne.root.lower_ in NEGATIVES:
                 country_exceptions.extend(gpe_list)
             else:
@@ -138,7 +78,7 @@ def get_attribute_location_spacy(doc):
     return result
 
 
-def _get_gpe(ne_question):
+def _get_gpe(ne_question) -> list:
     if isinstance(ne_question, nltk.tree.Tree):
         if ne_question._label is not None and ne_question._label == 'GPE':
             return [x for x in ne_question]
@@ -149,8 +89,7 @@ def _get_gpe(ne_question):
     return []
 
 
-# question is a string here
-def get_attribute_location_simple(question):
+def get_attribute_location_simple(question: str) -> LocationAttribute:
     tagged_tokens = nltk.pos_tag(nltk.word_tokenize(question))
     ne_question = nltk.ne_chunk(tagged_tokens)
     gpe_list = _get_gpe(ne_question)

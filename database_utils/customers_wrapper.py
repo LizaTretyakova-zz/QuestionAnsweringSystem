@@ -1,16 +1,10 @@
-import psycopg2
-
-from base_wrapper import USER, PASSWORD, BaseWrapper
+from base_wrapper import BaseWrapper
 from model import AnswerType, QuestionType
 
 
 class CustomersWrapper(BaseWrapper):
     def __init__(self):
         super().__init__()
-        try:
-            self.connection = psycopg2.connect(database='postgres', user=USER, host='localhost', password=PASSWORD)
-        except:
-            print("I am unable to connect to the database")
 
     def ask(self, question):
         answer_type = question.answer_type
@@ -23,7 +17,7 @@ class CustomersWrapper(BaseWrapper):
         if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None
 
-        cur = self.connection.cursor()
+        cur = self.conn.cursor()
 
         ask_phrase = """SELECT count(*) FROM
     (purchases INNER JOIN orders ON order_id = orders.id) INNER JOIN customers ON customers.id = customer_id

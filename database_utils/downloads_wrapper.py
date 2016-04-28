@@ -1,6 +1,4 @@
-import psycopg2
-
-from base_wrapper import BaseWrapper, USER, PASSWORD
+from base_wrapper import BaseWrapper
 from model import BaseAttribute
 
 
@@ -62,9 +60,8 @@ class DownloadsWrapper(BaseWrapper):
         self.__extract_data__()
         self.__create_query__()
         self.__create_arguments__()
-        conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
 
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(self.query, self.arguments)
         res = cur.fetchone()
         message = "Success"
