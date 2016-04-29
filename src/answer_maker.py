@@ -1,5 +1,13 @@
-from src.attributes import TYPES, PLURAL
 from src.model import QuestionType
+
+PLURAL = {
+    "was": "were",
+    "were": "were",
+    "is": "are",
+    "are": "are",
+    "has been": "have been",
+    "have been": "have been"
+}
 
 past_verbs = ["was", "were"]
 present_verbs = ["is", "ara"]
@@ -66,10 +74,3 @@ def get_answer(query, answer):
     if query.question_type is QuestionType.CUSTOMERS:
         return ("There" + xstr(plural(verb), " ") + " " + str(answer) + " customers" + country_str(countries) +
                 create_time_part(query.attributes.time))
-
-
-# deprecated :)
-def _get_type(type, question):
-    for word, res_type in TYPES[type].items():
-        if word in question:
-            return res_type

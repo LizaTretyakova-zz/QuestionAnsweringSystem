@@ -1,7 +1,5 @@
-import psycopg2
-
-from base_wrapper import BaseWrapper, USER, PASSWORD
-from model import BaseAttribute
+from database_utils.base_wrapper import BaseWrapper
+from src.model import BaseAttribute
 
 
 class DownloadsWrapper(BaseWrapper):
@@ -9,12 +7,12 @@ class DownloadsWrapper(BaseWrapper):
     NEGATIVE_VALUE = [False]
     DEFAULT_QUERY_VALUE = "%s"
 
-    def __init__(self, question):
+    def __init__(self):
         super().__init__()
-        self.question = question  # COUNTRY, product, DOWNLOAD_DATE, amount
+        self.question = None
         self.country = self.DEFAULT_VALUE
-        # self.location = self.DEFAULT_VALUE
-        # self.city = self.DEFAULT_VALUE
+        self.location = self.DEFAULT_VALUE
+        self.city = self.DEFAULT_VALUE
         self.time = self.DEFAULT_VALUE
         self.arguments = None
         self.query = None
@@ -58,13 +56,14 @@ class DownloadsWrapper(BaseWrapper):
     def __create_arguments__(self):
         self.arguments = tuple([tuple(self.country)] + self.time)
 
-    def get(self):
+    def get(self, question):
+        self.question = question
+
         self.__extract_data__()
         self.__create_query__()
         self.__create_arguments__()
-        conn = psycopg2.connect(database="postgres", user=USER, password=PASSWORD, host="localhost")
 
-        cur = conn.cursor()
+        cur = self.conn.cursor()
         cur.execute(self.query, self.arguments)
         res = cur.fetchone()
         message = "Success"
