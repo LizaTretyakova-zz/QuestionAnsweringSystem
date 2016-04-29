@@ -1,6 +1,5 @@
-from model import AnswerType, QuestionType
-from attributes import TYPES, PLURAL
-from downloads_wrapper import DownloadsWrapper
+from src.attributes import TYPES, PLURAL
+from src.model import QuestionType
 
 past_verbs = ["was", "were"]
 present_verbs = ["is", "ara"]

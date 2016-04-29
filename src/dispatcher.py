@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from answer_maker import get_answer
-from customers_wrapper import CustomersWrapper
-from downloads_wrapper import DownloadsWrapper
-from model import QuestionType
+from src.answer_maker import get_answer
+from src.customers_wrapper import CustomersWrapper
+from src.downloads_wrapper import DownloadsWrapper
+from src.model import QuestionType
 
 
 def itertools_to_list(iter):

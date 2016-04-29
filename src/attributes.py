@@ -7,8 +7,8 @@ from geopy import Nominatim
 from spacy.parts_of_speech import VERB
 from datetime import date
 #from geopy.geocoders import Nominatim
-from model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
-from downloads_wrapper import USER, PASSWORD
+from src.model import Question, QuestionType, AnswerType, ActionAttribute, LocationAttribute, TimeAttribute, Attributes
+from src.downloads_wrapper import USER, PASSWORD
 import nltk, re
 
 

@@ -1,7 +1,7 @@
 import psycopg2
 
-from base_wrapper import USER, PASSWORD, BaseWrapper
-from model import AnswerType, QuestionType
+from src.base_wrapper import USER, PASSWORD, BaseWrapper
+from src.model import AnswerType, QuestionType
 
 
 class CustomersWrapper(BaseWrapper):
