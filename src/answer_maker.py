@@ -1,5 +1,4 @@
-from model import QuestionType
-
+from src.model import QuestionType
 
 PLURAL = {
     "was": "were",
@@ -9,7 +8,6 @@ PLURAL = {
     "has been": "have been",
     "have been": "have been"
 }
-
 
 past_verbs = ["was", "were"]
 present_verbs = ["is", "ara"]

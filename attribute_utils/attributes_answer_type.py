@@ -1,4 +1,4 @@
-from model import AnswerType
+from src.model import AnswerType
 
 
 TYPES = {

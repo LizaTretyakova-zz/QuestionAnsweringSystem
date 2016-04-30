@@ -1,4 +1,4 @@
-from base_wrapper import BaseWrapper
+from database_utils.base_wrapper import BaseWrapper
 
 DEFAULT_REGION = 'World'
 INVALID_REGION_ID = 0

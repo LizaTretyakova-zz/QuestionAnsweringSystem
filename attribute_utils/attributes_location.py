@@ -1,7 +1,9 @@
 from geopy import Nominatim
-from model import LocationAttribute
+from src.model import LocationAttribute
 import database_utils
 import nltk
+
+COUNT_ATTEMPTS = 10
 
 
 NEGATIVES = [
@@ -35,7 +37,13 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
     for ne in doc.ents:
         exceptions = []
         candidates = []
-        geocoder = geolocator.geocode(ne.orth_)
+        for i in range(COUNT_ATTEMPTS):
+            try:
+                geocoder = geolocator.geocode(ne.orth_)
+                break
+            except:
+                if i is COUNT_ATTEMPTS - 1:
+                    raise
 
         if ne.label_ not in ['GPE', 'LOC', 'ORG'] or not geocoder:
             continue

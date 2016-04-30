@@ -1,5 +1,5 @@
 from spacy.parts_of_speech import VERB
-from model import ActionAttribute
+from src.model import ActionAttribute
 
 
 def get_attribute_action(doc)->list:

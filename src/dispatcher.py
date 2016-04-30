@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-from answer_maker import get_answer
-from model import QuestionType
+from src.answer_maker import get_answer
+from src.model import QuestionType
 import database_utils
-
 
 def itertools_to_list(iter):
     return [item for item in iter]

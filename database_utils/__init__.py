@@ -1,3 +1,3 @@
-from customers_wrapper import CustomersWrapper
-from downloads_wrapper import DownloadsWrapper
-from locations_wrapper import LocationWrapper
+from database_utils.customers_wrapper import CustomersWrapper
+from database_utils.downloads_wrapper import DownloadsWrapper
+from database_utils.locations_wrapper import LocationWrapper

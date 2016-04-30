@@ -1,5 +1,5 @@
-from base_wrapper import BaseWrapper
-from model import AnswerType, QuestionType
+from database_utils.base_wrapper import BaseWrapper
+from src.model import AnswerType, QuestionType
 
 
 class CustomersWrapper(BaseWrapper):
