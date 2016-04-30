@@ -1,5 +1,5 @@
-from base_wrapper import BaseWrapper
-from model import BaseAttribute
+from database_utils.base_wrapper import BaseWrapper
+from src.model import BaseAttribute
 
 
 class DownloadsWrapper(BaseWrapper):

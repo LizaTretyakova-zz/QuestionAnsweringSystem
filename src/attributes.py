@@ -2,8 +2,7 @@
 
 import spacy.en
 import attribute_utils
-from model import Question, Attributes
-
+from src.model import Question, Attributes
 
 def parse(question: str) -> Question:  # returns a list of question's attributes
     # question is a string

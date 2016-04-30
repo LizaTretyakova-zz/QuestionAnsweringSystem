@@ -1,4 +1,4 @@
-from model import TimeAttribute
+from src.model import TimeAttribute
 from datetime import date
 import re
 

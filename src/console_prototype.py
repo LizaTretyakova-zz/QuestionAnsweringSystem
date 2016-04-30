@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from attributes import parse
-from dispatcher import Dispatcher
+from src.attributes import parse
+from src.dispatcher import Dispatcher
 
 
 # TODO: make it a module and use the library
