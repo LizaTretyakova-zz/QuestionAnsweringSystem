@@ -60,19 +60,13 @@ def run():
             "How many downloads of PyCharm were made from Munich in 2014?",
             "How many different products are downloaded from Saint Petersburg?", # potentially okay question
             "how many downloads were there in Munich and Saint Petersburg?",
-            "How many customers were there in 2000 and 2011?"
+            "How many customers were there in 2000 and 2011?",
+            "How many customers are there in United States of America?",
+            "How many customers are there in Russia?",
+            "How many customers were there in 2012?",
         ]
 
     for question in run.questions:
         print(question)
         print(process_question(question))
         print("***")
-
-#attribute = TimeAttribute()
-#attribute.add_segment(500, 505)
-#attribute.add_segment(10, 200)
-#attribute.add_segment(8, 205)
-#attribute.add_except_segment(9, 20)
-#attribute.add_except_segment(40, 50)
-#attribute.add_except_segment(199, 210)
-#attribute.eval_real_segments()

@@ -42,6 +42,9 @@ class BaseAttribute:
 
 
 class Segment(object):
+
+    max_year = int(1e10)
+
     def __init__(self, start=None, end=None):
         self.start = start
         self.end = end
@@ -51,6 +54,18 @@ class Segment(object):
 
     def __repr__(self):
         return self.__dict__.__repr__()
+
+    def intersect(self, s2):
+        if self.start > s2.end or self.end < s2.start:
+            return False
+        return True
+
+    def not_none(self):
+        if self.start is None:
+            self.start = 0
+        if self.end is None:
+            self.end = self.max_year
+        return self
 
 
 class TimeAttribute(BaseAttribute):
@@ -69,36 +84,31 @@ class TimeAttribute(BaseAttribute):
         self.real_segments = []
 
     def add_segment(self, start=None, end=None):
-        self.segment_list.append(Segment(start=start, end=end))
+        self.segment_list.append(Segment(start=start, end=end).not_none())
 
     def add_except_segment(self, start=None, end=None):
-        self.except_segment_list.append(Segment(start=start, end=end))
+        self.except_segment_list.append(Segment(start=start, end=end).not_none())
 
     def eval_real_segments(self):
-        self.segment_list.sort(key=lambda x: x.start)
-        self.except_segment_list.sort(key=lambda x: x.start)
-        cur_except_segment = 0
-        except_segment = self.except_segment_list[cur_except_segment]
-
-        for segment in self.segment_list:
-            while cur_except_segment < len(self.except_segment_list) and \
-                            except_segment.end < segment.start:
-                except_segment = self.except_segment_list[cur_except_segment]
-                cur_except_segment += 1
-            while cur_except_segment < len(self.except_segment_list) and \
-                            except_segment.start < segment.end:
-                if segment.end < except_segment.start or segment.start > except_segment.end:
-                    self.real_segments.append(Segment(segment.start, segment.end))
-                    continue
-                if except_segment.start <= segment.start and except_segment.end >= segment.end:
-                    continue
-                if segment.start < except_segment.start:
-                    self.real_segments.append(Segment(segment.start, except_segment.start))
-                if segment.end > except_segment.end:
-                    self.real_segments.append(Segment(except_segment.end, segment.end))
-                except_segment = self.except_segment_list[cur_except_segment]
-                cur_except_segment += 1
-        print(self.real_segments)
+        self.real_segments = self.segment_list
+        for except_segment in self.except_segment_list:
+            additional_segments = list(self.real_segments)
+            for segment in additional_segments:
+                if except_segment.intersect(segment):
+                    self.real_segments.remove(segment)
+                    if except_segment.start > segment.start:
+                        segment_for_add = Segment(segment.start, except_segment.start - 1)
+                        self.real_segments.append(segment_for_add)
+                    if except_segment.end < segment.end:
+                        segment_for_add = Segment(except_segment.end + 1, segment.end)
+                        self.real_segments.append(segment_for_add)
+        self.real_segments.sort(key=lambda x: x.start)
+        for i in range(1, len(self.real_segments)):
+            if self.real_segments[i - 1].intersect(self.real_segments[i]):
+                new_segment = Segment(self.real_segments[i - 1].start, self.real_segments[i].end)
+                self.real_segments[i - 1] = new_segment
+                self.real_segments[i] = new_segment
+        self.real_segments = list(set(self.real_segments))
 
     def __repr__(self):
         return self.__dict__.__repr__()
@@ -129,6 +139,7 @@ class ActionAttribute(BaseAttribute):
 
     def __repr__(self):
         return self.__dict__.__repr__()
+
 
 class Attributes:
     def __init__(self):
