@@ -77,7 +77,7 @@ def get_attribute_time_spacy(doc, question):
             to_date = find_number(time.orth_)
             prepositions = ["before"]
             time_attribute.add_segment(None, to_date)
-        elif preposition.orth_ == "in" or preposition.orth_ == "within":
+        elif preposition.orth_ == "in" or preposition.orth_ == "within" or preposition.orth_ == "during":
             from_date = find_number(time.orth_)
             to_date = find_number(time.orth_)
             prepositions = [preposition.orth_]
@@ -110,7 +110,7 @@ def find_another_dates(doc, time_attribute):
             while cur_token.head is not cur_token and cur_token.dep_ == "conj":
                 cur_token = cur_token.head
             cur_token = cur_token.head
-            if cur_token.orth_ == "in":
+            if cur_token.orth_ == "in" or cur_token.orth_ == "within" or cur_token.orth_ == "during":
                 time_attribute.add_segment(find_number(token.orth_), find_number(token.orth_))
             if cur_token.orth_ == "without" or cur_token.orth_ == "except":
                 time_attribute.add_except_segment(find_number(token.orth_), find_number(token.orth_))

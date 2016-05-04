@@ -64,6 +64,10 @@ def run():
             "How many customers are there in United States of America?",
             "How many customers are there in Russia?",
             "How many customers were there in 2012?",
+            "How many customers were there during 2012?",
+            "How many downloads were there within 2014 and 2015?",
+            "How many downloads were?",
+            "How many downloads were there?"
         ]
 
     for question in run.questions:
