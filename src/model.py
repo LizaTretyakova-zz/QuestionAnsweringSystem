@@ -42,15 +42,23 @@ class BaseAttribute:
 
 
 class Segment(object):
-
     max_year = int(1e10)
 
-    def __init__(self, start=None, end=None):
+    class PrepositionType(Enum):
+        positive = 0
+        negative = 1
+
+    def __init__(self, start=None, end=None, preposition=None, preposition_type=None):
         self.start = start
         self.end = end
+        self.preposition = preposition
+        self.preposition_type = preposition_type
 
     def __cmp__(self, other):
         return self.start < other.start
+
+    def __hash__(self):
+        return hash(self.__dict__.__repr__())
 
     def __repr__(self):
         return self.__dict__.__repr__()
@@ -67,27 +75,40 @@ class Segment(object):
             self.end = self.max_year
         return self
 
+    def __eq__(self, other):
+        return self.start == other.start and self.end == other.end \
+               and (self.preposition_type is None or other.preposition_type is None
+                    or (self.preposition_type == other.preposition_type))
+
 
 class TimeAttribute(BaseAttribute):
     type = "time"
 
-    def __init__(self, start=None, end=None, proposition=None, except_date=None,
-                 except_prepositions=None):
+    def __init__(self, start=None, end=None, except_date=None):
         super().__init__()
         self.start = start
         self.end = end
-        self.proposition = proposition
         self.except_date = except_date
         self.segment_list = []
-        self.except_prepositions = except_prepositions
         self.except_segment_list = []
         self.real_segments = []
+        self.segments_for_answer = []
 
-    def add_segment(self, start=None, end=None):
+    def append_for_answer(self, new_segment):
+        for segment in self.segments_for_answer:
+            if new_segment == segment:
+                return
+        self.segments_for_answer.append(new_segment)
+
+    def add_segment(self, start=None, end=None, preposition=None):
         self.segment_list.append(Segment(start=start, end=end).not_none())
+        self.append_for_answer(Segment(start=start, end=end,
+                                       preposition=preposition, preposition_type=0))
 
-    def add_except_segment(self, start=None, end=None):
+    def add_except_segment(self, start=None, end=None, preposition=None):
         self.except_segment_list.append(Segment(start=start, end=end).not_none())
+        self.append_for_answer(Segment(start=start, end=end,
+                                       preposition=preposition, preposition_type=1))
 
     def eval_real_segments(self):
         self.real_segments = self.segment_list
@@ -109,6 +130,7 @@ class TimeAttribute(BaseAttribute):
                 self.real_segments[i - 1] = new_segment
                 self.real_segments[i] = new_segment
         self.real_segments = list(set(self.real_segments))
+        self.real_segments.sort(key=lambda x: x.start)
 
     def __repr__(self):
         return self.__dict__.__repr__()
