@@ -6,6 +6,7 @@ TYPES = {
         "how many": AnswerType.NUMBER,
         "how much": AnswerType.NUMBER,
         "what": AnswerType.NUMBER,
+        "which number": AnswerType.NUMBER,
         "when": AnswerType.DATE
     }
 }

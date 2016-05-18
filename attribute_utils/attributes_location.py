@@ -26,11 +26,11 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
     except AttributeError:
         get_attribute_location_spacy.location_wrapper = database_utils.LocationWrapper()
 
-    country_exceptions = []
-    country_candidates = []
-    city_exceptions = []
-    city_candidates = []
-    locations = []  # better to say "regions" -- continents and administrative
+    country_exceptions = None # []
+    country_candidates = None # []
+    city_exceptions = None # []
+    city_candidates = None # []
+    locations = None # []  # better to say "regions" -- continents and administrative
 
     geolocator = Nominatim()
 
@@ -63,9 +63,13 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
         #           or a country (type='administrative' & label='GPE')
         type = geocoder.raw['type']
         if type == 'city':
+            city_exceptions = ([] if city_exceptions is None else city_exceptions)
+            city_candidates = ([] if city_candidates is None else city_candidates)
             exceptions = city_exceptions
             candidates = city_candidates
         elif type == 'administrative':
+            country_exceptions = ([] if country_exceptions is None else country_exceptions)
+            country_candidates = ([] if country_candidates is None else country_candidates)
             exceptions = country_exceptions
             candidates = country_candidates
         else:
@@ -80,8 +84,21 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
         else:
             candidates.append(ne.orth_)
 
-    country_list = [x for x in country_candidates if x not in country_exceptions]
-    city_list = [x for x in city_candidates if x not in city_exceptions]
+    if country_candidates is None \
+            and country_exceptions is None \
+            and city_candidates is None \
+            and city_candidates is None \
+            and locations is None:
+        return None
+
+    country_list = None
+    city_list = None
+    if country_candidates is not None:
+        country_exceptions = (country_exceptions if country_exceptions is not None else [])
+        country_list = [x for x in country_candidates if x not in country_exceptions]
+    if city_candidates is not None:
+        city_exceptions = (city_exceptions if city_exceptions is not None else [])
+        city_list = [x for x in city_candidates if x not in city_exceptions]
     result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
     return result
 

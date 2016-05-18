@@ -22,6 +22,10 @@ def xstr(smth, prefix=""):
 
 def country_str(countries):
     result = ""
+
+    if countries is None:
+        return result
+
     for country in countries:
         if result is "":
             result += " in " + country

@@ -5,6 +5,7 @@ TYPES = {
     "qualifier_words": {
         "download": QuestionType.DOWNLOADS,
         "customer": QuestionType.CUSTOMERS,
+        "client": QuestionType.CUSTOMERS,
         "revenue": QuestionType.SALES,
     },
 
