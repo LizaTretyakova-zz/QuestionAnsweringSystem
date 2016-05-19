@@ -7,12 +7,10 @@
 
 ## Contents:
 
-model.py             -- basic classes and structures
+attribute_utils        -- parsing question
 
-attributes.py        -- basic attributes functionality (location and time detection will be rewritten)
+database_utils         -- get data from db using the information from parsed questions
 
-dispatcher.py        -- TODO: implement
+src                    -- logic and working part
 
-database_wrappers.py -- sql-queries are here
-
-console_prototype.py -- main file
+main.py                -- to run on some predefined number of test questions (you may use src/console_prototype.py to ask your own ones)
