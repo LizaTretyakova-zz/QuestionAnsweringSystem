@@ -1,9 +1,0 @@
-{
-    "postgres":{
-        "host":"localhost",
-        "user":"demo",
-        "password":"demo",
-        "db":"postgres"
-    }
-}
-

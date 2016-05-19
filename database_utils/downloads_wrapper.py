@@ -19,7 +19,7 @@ class DownloadsWrapper(BaseWrapper):
         self.query_country = self.DEFAULT_QUERY_VALUE  # list of countries is temporary not supported
         self.query_duration = self.DEFAULT_QUERY_VALUE  # list of separate years is temporary not supported, but [), (], [] are
 
-    def __extract_data__(self):
+    def _extract_data_(self):
         if self.question is None:
             return "No question provided."
         for attr_name, attr in self.question.attributes.items():
@@ -37,18 +37,25 @@ class DownloadsWrapper(BaseWrapper):
                     self.query_country = "country in %s"
                     # self.query_country = "(country = %s " + "or country = %s " * (len(attr.countries) - 1) + ") "
             elif attr.type == "time":
-                if attr.start is not None and attr.end is not None and attr.start == attr.end:
-                    self.time = [attr.start]
-                    self.query_duration = " extract(year from download_date) = %s"
-                elif attr.start is not None and attr.end is not None:
-                    self.time = [attr.start, attr.end]
-                    self.query_duration = " extract(year from download_date) between %s and %s"
-                elif attr.start is not None:
-                    self.time = [attr.start]
-                    self.query_duration = " extract(year from download_date) > %s"
-                elif attr.end is not None:
-                    self.time = [attr.end]
-                    self.query_duration = " extract(year from download_date) < %s"
+                if self.time is self.DEFAULT_VALUE and len(attr.real_segments) > 0:
+                    self.time = []
+                for segment in attr.real_segments:
+                    self.query_duration = \
+                        ("(" if self.query_duration == self.DEFAULT_QUERY_VALUE else (self.query_duration + " or "))
+                    if segment.start is not None and segment.end is not None and segment.start == segment.end:
+                        self.time.extend([segment.start])
+                        self.query_duration += " extract(year from download_date) = %s"
+                    elif segment.start is not None and segment.end is not None:
+                        self.time.extend([segment.start, segment.end])
+                        self.query_duration += " extract(year from download_date) between %s and %s"
+                    elif segment.start is not None:
+                        self.time.extend([segment.start])
+                        self.query_duration += " extract(year from download_date) > %s"
+                    elif attr.end is not None:
+                        self.time.extend([segment.end])
+                        self.query_duration += " extract(year from download_date) < %s"
+                if len(attr.real_segments) > 0:
+                    self.query_duration += ")"
 
     def __create_query__(self):
         self.query = "select sum(amount) from downloads where " + self.query_country + " and " + self.query_duration
@@ -59,7 +66,7 @@ class DownloadsWrapper(BaseWrapper):
     def get(self, question):
         self.question = question
 
-        self.__extract_data__()
+        self._extract_data_()
         self.__create_query__()
         self.__create_arguments__()
 
