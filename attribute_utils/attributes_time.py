@@ -10,8 +10,7 @@ def get_attribute_time_spacy(doc, question):
         if ent.label_ == "DATE":
             times.append(ent)
 
-    except_prepositions = []
-    prepositions = []
+    complex_prepositions = []
     except_date = []
 
     from_date_for_segment = None
@@ -42,31 +41,31 @@ def get_attribute_time_spacy(doc, question):
             to_date = None
             time_attribute.add_segment(from_date, None, ["since"])
         elif preposition.orth_ == "from":
-            prepositions = ["from"]
+            complex_prepositions = ["from"]
             if "to" in time.orth_:
-                prepositions.append("to")
+                complex_prepositions.append("to")
             elif "until" in time.orth_:
-                prepositions.append("until")
+                complex_prepositions.append("until")
             elif "till" in time.orth_:
-                prepositions.append("till")
-            if len(prepositions) > 1:
-                part1 = time.orth_.split(prepositions[1])[0]
-                part2 = time.orth_.split(prepositions[1])[1]
+                complex_prepositions.append("till")
+            if len(complex_prepositions) > 1:
+                part1 = time.orth_.split(complex_prepositions[1])[0]
+                part2 = time.orth_.split(complex_prepositions[1])[1]
                 from_date = find_number(part1)
                 to_date = find_number(part2)
-                time_attribute.add_segment(from_date, to_date, prepositions)
-                prepositions = []
+                time_attribute.add_segment(from_date, to_date, complex_prepositions)
+                complex_prepositions = []
                 continue
             from_date = find_number(time.orth_)
             if from_date_for_segment is not None:
-                time_attribute.add_segment(from_date_for_segment, None, prepositions)
+                time_attribute.add_segment(from_date_for_segment, None, complex_prepositions)
             from_date_for_segment = find_number(time.orth_)
         elif preposition.orth_ == "to" or preposition.orth_ == "till" or preposition.orth_ == "until":
-            prepositions.append(preposition.orth_)
+            complex_prepositions.append(preposition.orth_)
             to_date = find_number(time.orth_)
-            time_attribute.add_segment(from_date_for_segment, to_date, prepositions)
+            time_attribute.add_segment(from_date_for_segment, to_date, complex_prepositions)
             from_date_for_segment = None
-            prepositions = []
+            complex_prepositions = []
         elif preposition.orth_ == "after" or preposition.orth_ == "by":
             from_date = find_number(time.orth_)
             to_date = None
@@ -131,12 +130,3 @@ def find_number(text):
         return int(search_result.group(0))
     else:
         return None
-
-
-def get_attribute_time(question):
-    search_result = re.search('in (\d+)', question)
-    if search_result is not None:
-        time = search_result.group(1)
-        return TimeAttribute(start=time, end=time)
-    else:
-        return TimeAttribute()
