@@ -1,5 +1,9 @@
 from database_utils.base_wrapper import BaseWrapper
 
+import logging
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
+
 DEFAULT_REGION = 'World'
 INVALID_REGION_ID = 0
 
@@ -28,5 +32,5 @@ class LocationWrapper(BaseWrapper):
         cur = self.conn.cursor()
         cur.execute(query, (tuple(parent_location_id), target_type))
         res = [x[0] for x in cur.fetchall()]
-        print(res)
+        logging.debug(res)
         return res

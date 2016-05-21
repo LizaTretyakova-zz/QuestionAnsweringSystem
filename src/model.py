@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 
-from collections import namedtuple
 from enum import Enum
+import logging
 
-
-# Question = namedtuple("Question", [
-#     "question", "question_type", "answer_type",
-#     "attributes"
-# ])
-
-# attributes: country, product, year, named_entity, action
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 
 class AnswerType(Enum):
@@ -178,14 +172,14 @@ class Attributes:
         return (self.__dict__).__repr__()
 
     def printf(self):
-        print(self.__dict__)
-        print("Location: ", end='')
-        print("location = ", end='')
-        print(self.location.locations, end='')
-        print(" countries = ", end='')
-        print(self.location.countries, end='')
-        print(" cities = ", end='')
-        print(self.location.cities)
+        logging.debug(self.__dict__)
+        logging.debug("Location: ", end='')
+        logging.debug("location = ", end='')
+        logging.debug(self.location.locations, end='')
+        logging.debug(" countries = ", end='')
+        logging.debug(self.location.countries, end='')
+        logging.debug(" cities = ", end='')
+        logging.debug(self.location.cities)
 
 
 class Question():

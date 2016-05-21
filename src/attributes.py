@@ -2,7 +2,10 @@
 import psycopg2
 import spacy.en
 import attribute_utils
+import logging
 from src.model import Question, Attributes
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 
 def parse(question: str) -> Question:  # returns a list of question's attributes
@@ -23,11 +26,11 @@ def parse(question: str) -> Question:  # returns a list of question's attributes
         result.action = attribute_utils.get_attribute_action(doc)
         result.product = attribute_utils.get_attribute_product(question)
     except KeyError as e:
-        print("KeyError. Json config doesn't contain such key:", str(e))
-        return None
+        logging.error("KeyError. Json config doesn't contain such key:", str(e))
+        raise e
     except psycopg2.OperationalError as e:
-        print("Error during database operation:\n", str(e))
-        return None
+        logging.error("Error during database operation:\n", str(e))
+        raise e
     return Question(
         question=question,
         question_type=attribute_utils.get_question_type(question, result.action),

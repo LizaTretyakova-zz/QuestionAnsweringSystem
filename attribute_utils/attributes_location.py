@@ -1,4 +1,5 @@
 from geopy import Nominatim
+import geopy.exc
 from src.model import LocationAttribute
 import database_utils
 import nltk
@@ -44,9 +45,9 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
             try:
                 geocoder = geolocator.geocode(ne.orth_)
                 break
-            except:
+            except geopy.exc.GeopyError as err:
                 if i is COUNT_ATTEMPTS - 1:
-                    raise
+                    raise err
 
         if ne.label_ not in ['GPE', 'LOC', 'ORG'] or not geocoder:
             continue

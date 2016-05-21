@@ -23,8 +23,8 @@ class DownloadsWrapper(BaseWrapper):
         self.time = self.DEFAULT_VALUE
         self.arguments = None
         self.query = None
-        self.query_country = self.DEFAULT_QUERY_VALUE  # list of countries is temporary not supported
-        self.query_duration = self.DEFAULT_QUERY_VALUE  # list of separate years is temporary not supported, but [), (], [] are
+        self.query_country = self.DEFAULT_QUERY_VALUE
+        self.query_duration = self.DEFAULT_QUERY_VALUE
 
     def _extract_data_(self):
         if self.question is None:
@@ -32,18 +32,12 @@ class DownloadsWrapper(BaseWrapper):
         for attr_name, attr in self.question.attributes.items():
             if not isinstance(attr, BaseAttribute):
                 pass
-            elif attr.type == "location":  # and attr.countries is not None:
-                # if attr.locations:
-                #     self.location = attr.locations
-                # if attr.cities:
-                #     self.city = attr.cities
+            elif attr.type == "location":
                 if not attr.countries:
                     self.country = self.NEGATIVE_VALUE
                 else:
                     self.country = [x.upper() for x in attr.countries]
-                    # self.country = attr.countries
                     self.query_country = "upper(country) in %s"
-                    # self.query_country = "(country = %s " + "or country = %s " * (len(attr.countries) - 1) + ") "
             elif attr.type == "time":
                 if self.time is self.DEFAULT_VALUE and len(attr.real_segments) > 0:
                     self.time = []
@@ -77,9 +71,7 @@ class DownloadsWrapper(BaseWrapper):
 
         self._extract_data_()
         self.__create_query__()
-        #
         logging.debug(question.attributes.time)
-        #
         self.__create_arguments__()
 
         cur = self.conn.cursor()
