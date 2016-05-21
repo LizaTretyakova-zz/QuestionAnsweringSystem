@@ -1,5 +1,9 @@
 from database_utils.base_wrapper import BaseWrapper
-from src.model import BaseAttribute
+from src.model import BaseAttribute, Question
+
+import logging
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 
 class DownloadsWrapper(BaseWrapper):
@@ -9,6 +13,9 @@ class DownloadsWrapper(BaseWrapper):
 
     def __init__(self):
         super().__init__()
+        self._drop_fields_values_()
+
+    def _drop_fields_values_(self):
         self.question = None
         self.country = self.DEFAULT_VALUE
         self.location = self.DEFAULT_VALUE
@@ -25,7 +32,7 @@ class DownloadsWrapper(BaseWrapper):
         for attr_name, attr in self.question.attributes.items():
             if not isinstance(attr, BaseAttribute):
                 pass
-            elif attr.type == "location": # and attr.countries is not None:
+            elif attr.type == "location":  # and attr.countries is not None:
                 # if attr.locations:
                 #     self.location = attr.locations
                 # if attr.cities:
@@ -33,8 +40,9 @@ class DownloadsWrapper(BaseWrapper):
                 if not attr.countries:
                     self.country = self.NEGATIVE_VALUE
                 else:
-                    self.country = attr.countries
-                    self.query_country = "country in %s"
+                    self.country = [x.upper() for x in attr.countries]
+                    # self.country = attr.countries
+                    self.query_country = "upper(country) in %s"
                     # self.query_country = "(country = %s " + "or country = %s " * (len(attr.countries) - 1) + ") "
             elif attr.type == "time":
                 if self.time is self.DEFAULT_VALUE and len(attr.real_segments) > 0:
@@ -63,11 +71,15 @@ class DownloadsWrapper(BaseWrapper):
     def __create_arguments__(self):
         self.arguments = tuple([tuple(self.country)] + self.time)
 
-    def get(self, question):
+    def get(self, question: Question):
+        self._drop_fields_values_()
         self.question = question
 
         self._extract_data_()
         self.__create_query__()
+        #
+        logging.debug(question.attributes.time)
+        #
         self.__create_arguments__()
 
         cur = self.conn.cursor()

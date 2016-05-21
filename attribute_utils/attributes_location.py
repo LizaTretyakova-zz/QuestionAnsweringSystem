@@ -2,6 +2,9 @@ from geopy import Nominatim
 from src.model import LocationAttribute
 import database_utils
 import nltk
+import logging
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 COUNT_ATTEMPTS = 10
 
@@ -92,6 +95,7 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
     country_list = [x for x in country_candidates if x not in country_exceptions]
     city_list = [x for x in city_candidates if x not in city_exceptions]
     result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
+    logging.debug(result)
     return result
 
 

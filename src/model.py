@@ -3,11 +3,11 @@
 from collections import namedtuple
 from enum import Enum
 
-Question = namedtuple("Question", [
-    "question", "question_type", "answer_type",
-    "attributes"
-])
 
+# Question = namedtuple("Question", [
+#     "question", "question_type", "answer_type",
+#     "attributes"
+# ])
 
 # attributes: country, product, year, named_entity, action
 
@@ -186,3 +186,12 @@ class Attributes:
         print(self.location.countries, end='')
         print(" cities = ", end='')
         print(self.location.cities)
+
+
+class Question():
+    def __init__(self, question: str, question_type: QuestionType, answer_type: AnswerType, attributes: Attributes):
+        self.question = question
+        self.question_type = question_type
+        self.answer_type = answer_type
+        self.attributes = attributes
+
