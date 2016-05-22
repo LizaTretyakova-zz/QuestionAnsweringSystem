@@ -1,8 +1,11 @@
 from database_utils.base_wrapper import BaseWrapper
 
-import logging
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 DEFAULT_REGION = 'World'
 INVALID_REGION_ID = 0
@@ -22,6 +25,16 @@ class LocationWrapper(BaseWrapper):
         return [x[0] for x in result]
 
     def get_by_location(self, parent_location: str, target_type: int) -> list:
+        # try:
+        #     self.get_by_location.logger
+        # except AttributeError:
+        #     import sys
+        #     from os.path import dirname, abspath
+        #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
+        #     import config
+        #     self.get_by_location.logger = config.get_logger()
+
+
         parent_location_id = self.get_location_id(parent_location.lower())
         query = ("SELECT locations.name\n"
                  "FROM locations\n"
@@ -32,5 +45,6 @@ class LocationWrapper(BaseWrapper):
         cur = self.conn.cursor()
         cur.execute(query, (tuple(parent_location_id), target_type))
         res = [x[0] for x in cur.fetchall()]
-        logging.debug(res)
+        # self.get_by_location.
+        logger.debug(res)
         return res

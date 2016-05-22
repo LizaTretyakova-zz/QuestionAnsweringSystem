@@ -1,9 +1,11 @@
 from database_utils.base_wrapper import BaseWrapper
 from src.model import BaseAttribute, Question
 
-import logging
-
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
 
 
 class DownloadsWrapper(BaseWrapper):
@@ -66,12 +68,22 @@ class DownloadsWrapper(BaseWrapper):
         self.arguments = tuple([tuple(self.country)] + self.time)
 
     def get(self, question: Question):
+        # try:
+        #     self.get.logger
+        # except AttributeError:
+        #     import sys
+        #     from os.path import dirname, abspath
+        #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
+        #     import config
+        #     self.get.logger = config.get_logger()
+
         self._drop_fields_values_()
         self.question = question
 
         self._extract_data_()
         self.__create_query__()
-        logging.debug(question.attributes.time)
+        # self.get.
+        logger.debug(question.attributes.time)
         self.__create_arguments__()
 
         cur = self.conn.cursor()

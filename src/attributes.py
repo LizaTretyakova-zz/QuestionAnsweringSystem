@@ -2,20 +2,29 @@
 import psycopg2
 import spacy.en
 import attribute_utils
-import logging
 from src.model import Question, Attributes
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
 
 
 def parse(question: str) -> Question:  # returns a list of question's attributes
-    # question is a string
-    # doc is spacy-parsed question
-
     try:
         parse.nlp
     except AttributeError:
         parse.nlp = spacy.en.English()
+
+    # try:
+    #     parse.logger
+    # except AttributeError:
+    #     import sys
+    #     from os.path import dirname, abspath
+    #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
+    #     import config
+    #     parse.logger = config.get_logger()
 
     doc = parse.nlp(question)
     result = Attributes()
@@ -26,10 +35,12 @@ def parse(question: str) -> Question:  # returns a list of question's attributes
         result.action = attribute_utils.get_attribute_action(doc)
         result.product = attribute_utils.get_attribute_product(question)
     except KeyError as e:
-        logging.error("KeyError. Json config doesn't contain such key:", str(e))
+        # parse.
+        logger.error("KeyError. Json config doesn't contain such key:", str(e))
         raise e
     except psycopg2.OperationalError as e:
-        logging.error("Error during database operation:\n", str(e))
+        # parse.
+        logger.error("Error during database operation:\n", str(e))
         raise e
     return Question(
         question=question,

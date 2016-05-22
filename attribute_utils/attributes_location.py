@@ -3,9 +3,13 @@ import geopy.exc
 from src.model import LocationAttribute
 import database_utils
 import nltk
-import logging
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
+
 
 COUNT_ATTEMPTS = 10
 
@@ -29,6 +33,15 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
         get_attribute_location_spacy.location_wrapper
     except AttributeError:
         get_attribute_location_spacy.location_wrapper = database_utils.LocationWrapper()
+
+    # try:
+    #     get_attribute_location_spacy.logger
+    # except AttributeError:
+    #     import sys
+    #     from os.path import dirname, abspath
+    #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
+    #     import config
+    #     get_attribute_location_spacy.logger = config.get_logger()
 
     country_exceptions = []
     country_candidates = []
@@ -75,11 +88,11 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
             exceptions = country_exceptions
             candidates = country_candidates
         else:
-            print('TYPE:')
-            print('Spacy type: ', ne.label_)
-            print('Nominatim type: ', type)
-            print('city')
-            print('administrative')
+            logger.debug('TYPE:')
+            logger.debug('Spacy type: ', ne.label_)
+            logger.debug('Nominatim type: ', type)
+            logger.debug('city')
+            logger.debug('administrative')
         # although we separate the results, the processing is similar for both
         if ne.root.lower_ in NEGATIVES:
             exceptions.append(ne.orth_)
@@ -96,7 +109,8 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
     country_list = [x for x in country_candidates if x not in country_exceptions]
     city_list = [x for x in city_candidates if x not in city_exceptions]
     result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
-    logging.debug(result)
+    # get_attribute_location_spacy.
+    logger.debug(result)
     return result
 
 

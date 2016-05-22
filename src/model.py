@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 from enum import Enum
-import logging
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
 
 
 class AnswerType(Enum):
@@ -172,20 +175,26 @@ class Attributes:
         return (self.__dict__).__repr__()
 
     def printf(self):
-        logging.debug(self.__dict__)
-        logging.debug("Location: ", end='')
-        logging.debug("location = ", end='')
-        logging.debug(self.location.locations, end='')
-        logging.debug(" countries = ", end='')
-        logging.debug(self.location.countries, end='')
-        logging.debug(" cities = ", end='')
-        logging.debug(self.location.cities)
+        # try:
+        #     self.printf.logger
+        # except AttributeError:
+        #     import sys
+        #     from os.path import dirname, abspath
+        #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
+        #     import config
+        #     self.printf.logger = config.get_logger()
+
+        logger.debug(self.__dict__)
+        logger.debug("Location: %s", self.location)
 
 
-class Question():
+class Question:
     def __init__(self, question: str, question_type: QuestionType, answer_type: AnswerType, attributes: Attributes):
         self.question = question
         self.question_type = question_type
         self.answer_type = answer_type
         self.attributes = attributes
 
+
+if __name__ == '__main__':
+    Attributes().printf()

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import psycopg2
-import logging
 from src.answer_maker import get_answer
 from src.model import QuestionType
 import database_utils
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+import sys
+from os.path import dirname, abspath
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
+import config
+logger = config.get_logger()
 
 
 def itertools_to_list(iter):
@@ -20,9 +23,17 @@ databases_ask_functions = {
 class Dispatcher(object):
     @staticmethod
     def find_answer(meta_data):
+        # import sys
+        # from os.path import dirname, abspath
+        #
+        # sys.path.insert(0, dirname(dirname(abspath(__file__))))
+        # import config
+        #
+        # logger = config.get_logger()
+
         if meta_data is None:
             return None
-        logging.debug(meta_data.attributes)
+        logger.debug(meta_data.attributes)
         try:
             if meta_data.question_type is QuestionType.CUSTOMERS:
                 wrapper = database_utils.CustomersWrapper()
@@ -36,8 +47,8 @@ class Dispatcher(object):
                     return (get_answer(meta_data, 0) + "\n" +
                             downloads_answer["message"])
         except KeyError as e:
-            logging.error("KeyError. Json config doesn't contain such key:", str(e))
+            logger.error("KeyError. Json config doesn't contain such key:", str(e))
             raise e
         except psycopg2.OperationalError as e:
-            logging.error("Error during database operation:\n", str(e))
+            logger.error("Error during database operation:\n", str(e))
             raise e
