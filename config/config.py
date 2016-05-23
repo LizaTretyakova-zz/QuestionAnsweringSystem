@@ -7,23 +7,42 @@ from os.path import dirname, abspath
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 
+BOT = "bot"
+LOGGER = "logging"
+DB_DATA = "postgres"
+FILENAME = "config.json"
+
+with open(FILENAME) as json_data_file:
+    data = json.load(json_data_file)
+
+
 def get_config_data() -> dict:
-    with open('config.json') as json_data_file:
-        data = json.load(json_data_file)
     return data
 
 
 def get_logger() -> logging.Logger:
-    data = get_config_data()
-    logging.config.dictConfig(data["logging"])
+    logging.config.dictConfig(data[LOGGER])
     logger = logging.getLogger(__name__)
     return logger
 
 
-def get_bd_data() -> dict:
-    data = get_config_data()
-    bd_data = data["postgres"]
+def get_db_data() -> dict:
+    # data = get_config_data()
+    bd_data = data[DB_DATA]
     return bd_data
+
+
+def get_bot_data() -> dict:
+    # data = get_config_data()
+    bot_data = data[BOT]
+    return bot_data
+
+
+def update(field: str, value) -> None:
+    data[field] = value
+    get_logger().debug("New field %s in data %s", field, data)
+    with open(FILENAME, 'w') as outfile:
+        json.dump(data, outfile)
 
 
 if __name__ == '__main__':

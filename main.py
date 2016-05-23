@@ -1,8 +1,12 @@
 import sys
 import tests
 import src
+import bot
 from psycopg2 import Error as Psycopg2Error
 from psycopg2 import Warning as Psycopg2Warning
+import config
+
+logger = config.get_logger()
 
 
 def main(argv=None):
@@ -14,22 +18,30 @@ def main(argv=None):
             tests.run_general()
         elif args[1] == "ask":
             src.run(args[2])
+        elif args[1] == "bot":
+            res = bot.commit_action(args[2])
+            return res
         else:
             print("Unknown command line argument")
             return 1
-    except IndexError:
+    except IndexError as err:
+        logger.error(err)
         print("Not enough arguments")
         return 1
-    except KeyError:
+    except KeyError as err:
+        logger.error(err)
         print("Possible problems with JSON config. Please see logs for more information")
         return 1
-    except Psycopg2Error:
+    except Psycopg2Error as err:
+        logger.error(err)
         print("Problems with database. Please, check its existence and correctness of your login and password.")
         return 1
-    except Psycopg2Warning:
+    except Psycopg2Warning as err:
+        logger.error(err)
         print("Sorry, we're experiencing problems with database.")
         return 1
-    except:
+    except Exception as err:
+        logger.error(err)
         print("An unexpected error occurred. For more information see the log file.")
         return 1
     return 0
