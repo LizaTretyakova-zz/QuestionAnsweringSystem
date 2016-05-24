@@ -83,8 +83,9 @@ class Bot(Daemon):
             bot.sendMessage(chat_id=update.message.chat_id, text=answer)
         else:
             bot.sendSticker(chat_id=update.message.chat_id, sticker="BQADAgADUAAD-Aq8AhYQmf3YFjltAg")
-            bot.sendMessage(chat_id=update.message.chat_id, text="With all due respect we have not got your question."
-                                                                 + "Would you please mind repeating it with some more precise information?")
+            bot.sendMessage(chat_id=update.message.chat_id,
+                            text="With all due respect we have not got your question." +
+                                 "Would you please mind repeating it with some more precise information?")
 
     @staticmethod
     def answer_to_sticker(bot, update):

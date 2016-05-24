@@ -26,4 +26,3 @@ def get_attribute_action(doc)->list:
 
 # def get_attribute_action_simple(question):
 #     return get_attribute_by_list(ATTRIBUTES["action"], question)
-

@@ -2,10 +2,11 @@ from database_utils.base_wrapper import BaseWrapper
 
 import sys
 from os.path import dirname, abspath
+
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 import config
-logger = config.get_logger()
 
+logger = config.get_logger()
 
 DEFAULT_REGION = 'World'
 INVALID_REGION_ID = 0
@@ -16,7 +17,7 @@ class LocationWrapper(BaseWrapper):
         super().__init__()
 
     def get_location_id(self, location: str) -> int:
-        query = ("SELECT id FROM locations WHERE lower(name)=%s");
+        query = "SELECT id FROM locations WHERE lower(name)=%s"
         cur = self.conn.cursor()
         cur.execute(query, (location,))
         result = cur.fetchall()
@@ -33,7 +34,6 @@ class LocationWrapper(BaseWrapper):
         #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
         #     import config
         #     self.get_by_location.logger = config.get_logger()
-
 
         parent_location_id = self.get_location_id(parent_location.lower())
         query = ("SELECT locations.name\n"

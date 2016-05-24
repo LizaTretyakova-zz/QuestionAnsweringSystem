@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from Bot import Bot
 
-
 START = "start"
 STOP = "stop"
 RESTART = "restart"
+
 
 def commit_action(action: str) -> int:
     try:
