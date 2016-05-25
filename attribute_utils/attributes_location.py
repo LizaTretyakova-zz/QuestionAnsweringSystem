@@ -34,6 +34,7 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
     except AttributeError:
         get_attribute_location_spacy.location_wrapper = database_utils.LocationWrapper()
 
+    print("attribute location logger name=" + logger.name)
     # try:
     #     get_attribute_location_spacy.logger
     # except AttributeError:

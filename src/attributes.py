@@ -17,6 +17,7 @@ def parse(question: str) -> Question:  # returns a list of question's attributes
     except AttributeError:
         parse.nlp = spacy.en.English()
 
+    print("attributes logger name=" + logger.name)
     # try:
     #     parse.logger
     # except AttributeError:

@@ -19,8 +19,7 @@ def main(argv=None):
         elif args[1] == "ask":
             src.run(args[2])
         elif args[1] == "bot":
-            res = bot.commit_action(args[2])
-            return res
+            bot.run_bot()
         else:
             print("Unknown command line argument")
             return 1

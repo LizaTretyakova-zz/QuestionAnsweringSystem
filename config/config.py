@@ -15,14 +15,17 @@ FILENAME = "config.json"
 with open(FILENAME) as json_data_file:
     data = json.load(json_data_file)
 
+logging.basicConfig(filename="qa.log", format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", level="DEBUG")
+print("logger name=" + __name__)
+logger = logging.getLogger(__name__)
+
 
 def get_config_data() -> dict:
     return data
 
 
 def get_logger() -> logging.Logger:
-    logging.config.dictConfig(data[LOGGER])
-    logger = logging.getLogger(__name__)
+    # logging.config.dictConfig(data[LOGGER])
     return logger
 
 
