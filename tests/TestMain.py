@@ -1,9 +1,9 @@
 import unittest
-import attributes
+import src.attributes as attributes
 
 import sys
 from os.path import dirname, abspath
-sys.path.insert(0, dirname(dirname(abspath(__file__))))
+#sys.path.insert(0, dirname(dirname(abspath(__file__))))
 import database_utils
 
 
@@ -37,7 +37,7 @@ class MainTestCase(unittest.TestCase):
         self._test_downloads_success_('how many downloads were made in Russia and Germany?', 1966)
 
     def test_amount_multiple_locations_customers(self):
-        self._test_customers_success_('how many downloads were made in Russia and United Kingdom?', 2)
+        self._test_customers_success_('how many customers were there in Russia and United Kingdom?', 2)
         # self._test_customers_success_('How many customers are there in North America?', 2)
 
     def test_downloads_wrapper_handles_upper_case_spelling(self):

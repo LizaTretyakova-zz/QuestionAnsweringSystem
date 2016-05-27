@@ -30,11 +30,17 @@ class CustomersWrapper(BaseWrapper):
             ask_about_dates += " OR ".join(parts)
             ask_about_dates += ")"
 
+#        ask_phrase = """SELECT COUNT(DISTINCT customer_id) FROM
+#        customers LEFT JOIN (orders LEFT JOIN purchases ON order_id = orders.id) ON customers.id = customer_id
+#        WHERE ((upper(country) = upper(coalesce(%s, country))) OR (country is NULL AND %s is NULL))
+#        """ + ask_about_dates + """
+#        AND (upper(product) = upper(coalesce(%s, product)) OR (product is NULL AND %s is NULL));"""
+
         ask_phrase = """SELECT COUNT(DISTINCT customer_id) FROM
         customers LEFT JOIN (orders LEFT JOIN purchases ON order_id = orders.id) ON customers.id = customer_id
-        WHERE ((country = coalesce(%s, country)) OR (country is NULL AND %s is NULL))
+        WHERE ((upper(country) like upper(coalesce(%s, country))) OR (country is NULL AND %s is NULL))
         """ + ask_about_dates + """
-        AND (product = coalesce(%s, product) OR (product is NULL AND %s is NULL));"""
+        AND (upper(product) = upper(coalesce(%s, product)) OR (product is NULL AND %s is NULL));"""
 
         list_for_date = []
         for segment in date.real_segments:

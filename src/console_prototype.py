@@ -9,4 +9,7 @@ def process_question(question):
 
 
 def run(question):
-    print(process_question(question))
+    answer = process_question(question)
+    print(answer)
+    return answer
+
