@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <title>Questtion Answering System for bd.</title>
+    <style>
+    	h1 {text-align:center;}
+    </style>
+</head>
+<body>
+
+    <h1> QAS for BD </h1>
+    <hr />
+
+    <form>    
+        Question:<br>
+        <input type="text" name="question" size="50" id="text-field">
+        <br>
+    </form>
+    <button onclick="sendQuery()">Get answer!</button> 
+
+    <form>
+        Answer:
+        <div id="answer"> </div>
+        <br>
+    </form>
+    
+    <script src="QAS.js">
+    </script>
+
+</body>
+</html>
+
