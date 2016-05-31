@@ -16,7 +16,6 @@ class MainTestCase(unittest.TestCase):
         parsed_question = attributes.parse(q)
         wrapper_answer = self.downloads_wrapper.get(parsed_question)
         self.assertIsNotNone(wrapper_answer)
-        # self.assertEqual(wrapper_answer['message'], 'Success')
         self.assertEqual(wrapper_answer['result'][0], a)
 
     def _test_customers_success_(self, q: str, a: int) -> None:
@@ -26,46 +25,46 @@ class MainTestCase(unittest.TestCase):
         self.assertEqual(wrapper_answer, a)
 
     def test_amount_general(self):
-        self._test_downloads_success_('How many downloads were made in total?', 2028)
+        self._test_downloads_success_('How many downloads were made in total?', 38727)
 
     def test_amount_single_location(self):
-        self._test_downloads_success_('how many downloads were there in Russia?', 766)
-        self._test_downloads_success_('How many different products are downloaded from Russia?', 766)
+        self._test_downloads_success_('how many downloads were there in Russia?', 10724)
+        self._test_downloads_success_('How many different products are downloaded from Russia?', 10724)
         self._test_customers_success_('How many customers are there in United States of America?', 2)
 
     def test_amount_multiple_locations_downloads(self):
-        self._test_downloads_success_('how many downloads were made in Russia and Germany?', 1966)
+        self._test_downloads_success_('how many downloads were made in Russia and Germany?', 27524)
 
     def test_amount_multiple_locations_customers(self):
-        self._test_customers_success_('how many downloads were made in Russia and United Kingdom?', 2)
+        self._test_customers_success_('how many customers were in Russia and United Kingdom?', 7)
         # self._test_customers_success_('How many customers are there in North America?', 2)
 
     def test_downloads_wrapper_handles_upper_case_spelling(self):
-        self._test_downloads_success_('How many downloads are there in European Union?', 1200)
+        self._test_downloads_success_('How many downloads are there in European Union?', 17957)
 
     def test_customers_wrapper_handles_upper_case_spelling(self):
-        self._test_customers_success_('How many customers are there in North America?', 2)
+        self._test_customers_success_('How many customers are there in North America?', 5)
 
     def test_amount_time(self):
-        self._test_downloads_success_('How many times PyCharm was downloaded in 2015?', 1262)
-        self._test_downloads_success_('how many downloads were 1 year ago?', 1262)
-        self._test_downloads_success_('How many downloads have been since 2015?', 1262)
-        self._test_downloads_success_('Which number of clients downloaded PyCharm in 2014?', 766)  # 534?
-        self._test_downloads_success_('How many downloads were from 2000 to 2016 except 2015?', 766)
-        self._test_downloads_success_('How many downloads were till 2016 without 2015?', 766)
-        self._test_downloads_success_('How many downloads were there within 2014 and 2015?', 2028)
-        self._test_customers_success_('How many customers have been since 2000?', 4)
-        self._test_customers_success_('How many customers were there in 2000 and 2011?', 0)
+        self._test_downloads_success_('How many times PyCharm was downloaded in 2015?', 1885)
+        self._test_downloads_success_('how many downloads were 1 year ago?', 1885)
+        self._test_downloads_success_('How many downloads have been since 2015?', 1974)
+        # self._test_downloads_success_('Which number of clients downloaded PyCharm in 2014?', 766)  # 534?
+        self._test_downloads_success_('Which number of downloads were made from 2000 to 2016 except 2015?', 36842)
+        self._test_downloads_success_('How many downloads were till 2016 without 2015?', 36842)
+        self._test_downloads_success_('How many downloads were there within 2014 and 2015?', 3317)
+        self._test_customers_success_('How many customers have been since 2000?', 20)
+        self._test_customers_success_('How many customers were there in 2000 and 2011?', 2)
         self._test_customers_success_('How many customers were there in 2012?', 4)
         self._test_customers_success_('How many customers were there during 2012?', 4)
 
     def test_amount_location_time(self):
-        self._test_downloads_success_('how many downloads were there in 2015?', 1262)
+        self._test_downloads_success_('how many downloads were there in 2015?', 1885)
         self._test_downloads_success_('how many downloads were in Russia in 2014?', 766)
         # self._test_downloads_success_('how many downloads were there in Nigeria in 2014?', 0)
         # create one more test function to test zero values
-        self._test_downloads_success_('How many downloads of PyCharm were made from Russia from 2013 to 2015?', 766)
-        self._test_downloads_success_('How many downloads of PyCharm were made from Russia between 2013 and 2015?', 766)
+        self._test_downloads_success_('How many downloads of PyCharm were made from Russia from 2013 to 2015?', 1532)
+        self._test_downloads_success_('How many downloads of PyCharm were made from Russia between 2013 and 2015?', 1532)
 
         # What was the number of licences of PyCharm sold in Russia in 2014?
         # European Union 2 years ago
@@ -84,3 +83,11 @@ class MainTestCase(unittest.TestCase):
         self._test_downloads_success_('How many downloads were there in 2012 in UK?', 43)
         self._test_downloads_success_('How many downloads were there in 2012 in United Kingdom?', 43)
         self._test_downloads_success_('How many downloads were there in 2012 in Great Britain?', 43)
+
+
+def run_tests():
+    unittest.main()
+
+
+if __name__ == "__main__":
+    unittest.main()

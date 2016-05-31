@@ -23,14 +23,6 @@ databases_ask_functions = {
 class Dispatcher(object):
     @staticmethod
     def find_answer(meta_data):
-        # import sys
-        # from os.path import dirname, abspath
-        #
-        # sys.path.insert(0, dirname(dirname(abspath(__file__))))
-        # import config
-        #
-        # logger = config.get_logger()
-
         if meta_data is None:
             return None
         logger.debug(meta_data.attributes)

@@ -177,15 +177,6 @@ class Attributes:
         return (self.__dict__).__repr__()
 
     def printf(self):
-        # try:
-        #     self.printf.logger
-        # except AttributeError:
-        #     import sys
-        #     from os.path import dirname, abspath
-        #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
-        #     import config
-        #     self.printf.logger = config.get_logger()
-
         logger.debug(self.__dict__)
         logger.debug("Location: %s", self.location)
 

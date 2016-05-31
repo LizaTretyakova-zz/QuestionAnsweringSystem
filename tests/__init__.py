@@ -1,1 +1,1 @@
-from tests.tests_run_utils import run_general
+from tests.tests import run_tests

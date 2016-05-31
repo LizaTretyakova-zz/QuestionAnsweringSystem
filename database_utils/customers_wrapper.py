@@ -12,7 +12,6 @@ class CustomersWrapper(BaseWrapper):
         product = question.attributes.product
         date = question.attributes.time
         place = question.attributes.location
-        #        print("money, ", answer_type, product, place, date, question_type)
 
         if answer_type is not AnswerType.NUMBER or question_type is not QuestionType.CUSTOMERS:
             return None

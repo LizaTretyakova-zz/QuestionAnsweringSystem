@@ -22,7 +22,3 @@ def get_attribute_action(doc)->list:
                            action=" ".join(action),
                            other=others,
                            auxiliary=" ".join(auxiliary))
-
-
-# def get_attribute_action_simple(question):
-#     return get_attribute_by_list(ATTRIBUTES["action"], question)

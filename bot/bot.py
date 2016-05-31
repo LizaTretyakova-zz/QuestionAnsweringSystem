@@ -12,7 +12,7 @@ data = config.get_bot_data()
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Hi!')
+    bot.sendMessage(update.message.chat_id, text='Hi! Please, enter the password to proceed.')
 
 
 def help(bot, update):
@@ -90,5 +90,4 @@ def run_bot():
 
 
 if __name__ == "__main__":
-    # src.run()
     run_bot()

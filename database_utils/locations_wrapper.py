@@ -26,15 +26,6 @@ class LocationWrapper(BaseWrapper):
         return [x[0] for x in result]
 
     def get_by_location(self, parent_location: str, target_type: int) -> list:
-        # try:
-        #     self.get_by_location.logger
-        # except AttributeError:
-        #     import sys
-        #     from os.path import dirname, abspath
-        #     sys.path.insert(0, dirname(dirname(abspath(__file__))))
-        #     import config
-        #     self.get_by_location.logger = config.get_logger()
-
         parent_location_id = self.get_location_id(parent_location.lower())
         query = ("SELECT locations.name\n"
                  "FROM locations\n"

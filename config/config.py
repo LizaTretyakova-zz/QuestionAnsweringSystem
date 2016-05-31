@@ -1,4 +1,3 @@
-import logging.config
 import logging
 import json
 
@@ -10,7 +9,7 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 BOT = "bot"
 LOGGER = "logging"
 DB_DATA = "postgres"
-FILENAME = "config.json"
+FILENAME = "../config.json"
 
 with open(FILENAME) as json_data_file:
     data = json.load(json_data_file)

@@ -66,10 +66,19 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
         if ne.label_ not in ['GPE', 'LOC', 'ORG'] or not geocoder:
             continue
 
+        logger.debug(geocoder)
+        logger.debug(geocoder.raw)
+        logger.debug(geocoder.address)
+        logger.debug(ne.label_)
+        logger.debug(ne.lemma_)
+        logger.debug(ne.orth_)
+        logger.debug(ne.root.lower_)
+        logger.debug(ne.root.head.lower_)
+
         if ne.label_ == 'LOC' or ne.label_ == 'ORG':
             # geocoder = geolocator.geocode(ne.orth_)
             gpe_list = get_attribute_location_spacy.location_wrapper.get_by_location(ne.orth_, RegionType['COUNTRY'])
-            if ne.root.lower_ in NEGATIVES:
+            if ne.root.head.lower_ in NEGATIVES:
                 # country_exceptions = ([] if country_exceptions is None else country_exceptions)
                 country_exceptions.extend(gpe_list)
             else:
@@ -95,7 +104,7 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
             logger.debug('city')
             logger.debug('administrative')
         # although we separate the results, the processing is similar for both
-        if ne.root.lower_ in NEGATIVES:
+        if ne.root.head.lower_ in NEGATIVES:
             exceptions.append(ne.orth_)
         else:
             candidates.append(ne.orth_)
@@ -107,8 +116,14 @@ def get_attribute_location_spacy(doc) -> LocationAttribute:
             and locations == []:
         return None
 
-    country_list = [x for x in country_candidates if x not in country_exceptions]
-    city_list = [x for x in city_candidates if x not in city_exceptions]
+    # map(country_exceptions, lambda x: x.upper())
+    # map(country_candidates, lambda x: x.upper())
+    # map(city_exceptions, lambda x: x.upper())
+    # map(city_candidates, lambda x: x.upper())
+    # map(locations, lambda x: x.upper())
+
+    country_list = [x for x in country_candidates if x not in map(lambda x: x.upper(), country_exceptions)]
+    city_list = [x for x in city_candidates if x not in map(lambda x: x.upper(), city_exceptions)]
     result = LocationAttribute(locations=locations, countries=country_list, cities=city_list)
     # get_attribute_location_spacy.
     logger.debug(result)
